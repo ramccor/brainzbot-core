@@ -1,9 +1,9 @@
 ```
     ____             _             ____        __ 
-   / __ )_________ _(_)___  ____  / __ )____  / /_
+   / __ )_________ _(_)___  ____  / __ )____  / /
   / __  / ___/ __ `/ / __ \/_  / / __  / __ \/ __/
- / /_/ / /  / /_/ / / / / / / /_/ /_/ / /_/ / /_  
-/_____/_/   \__,_/_/_/ /_/ /___/_____/\____/\__/  
+ / /_/ / /  / /_/ / / / / / / /_/ /_/ / /_/ / /_
+/_____/_/   \__,_/_/_/ /_/ /___/_____/\____/\__/
 
 ```
 
@@ -12,6 +12,7 @@
 Botbot is collection of tools for running IRC bots. It has primarily been
 used with Freenode channels but works with other IRC networks or servers.
 
-This fork is customized specifically for the Metabrainz Foundation and used on http://chatlogs.metabrainz.org/.
+This is a fork customized for use by the [MetaBrainz Foundation](https://metabrainz.org).
+It can be seen in action at http://chatlogs.metabrainz.org/
 
 [Documentation](http://botbot.readthedocs.org/en/latest/)
