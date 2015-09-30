@@ -1,7 +1,10 @@
 language: python
 python:
   - "2.7"
-cache: pip
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/virtualenv
 sudo: false
 install:
   - "pip install -e . -r requirements.txt"
