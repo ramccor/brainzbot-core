@@ -516,7 +516,7 @@ class SingleLogViewer(DayLogViewer):
     def _permalink_to_log(self, log):
         """Scan pages for a single log. Return to permalink to page"""
         cache_key = "line:{}:permalink".format(log.pk)
-        url, params = cache.get(cache_key, [None, None])
+        url, params = cache.get(cache_key, [None, {}])
         if not url:
             paginator = self.get_paginator(
                 self.object_list, self.get_paginate_by(self.object_list))
@@ -527,7 +527,9 @@ class SingleLogViewer(DayLogViewer):
                     url = self.channel_date_url()
                     cache.set(cache_key, [url, params], None)
                     break  # Found the page.
-
+            # page wasn't found
+            if not url:
+                raise Http404
         oparams = self.request.GET.copy()
         oparams.update(params)
         return '{0}?{1}'.format(url, oparams.urlencode())

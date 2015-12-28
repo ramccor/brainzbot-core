@@ -4,17 +4,17 @@ import string
 import uuid
 
 from django.core.cache import cache
-from django.conf import settings
 from django.db import models
 from django.db.models import Max, Min
 from django.db.models.aggregates import Count
-from django.utils.text import slugify
 from django.utils.datastructures import SortedDict
+from django.utils.text import slugify
 from djorm_pgarray.fields import ArrayField
+
 from botbot.apps.plugins import models as plugins_models
-from botbot.apps.logs import utils as log_utils
 from botbot.apps.plugins.models import Plugin, ActivePlugin
 from botbot.core.models import TimeStampedModel
+
 
 def pretty_slug(server):
     parts = server.split('.')
@@ -98,14 +98,35 @@ class ChatBot(models.Model):
 
         raise NoAvailableChatBots(slug)
 
+class ChannelQuerySet(models.query.QuerySet):
+    def active(self):
+        return self.filter(status=Channel.ACTIVE)
 
 class ChannelManager(models.Manager):
+
+    def get_queryset(self):
+        return ChannelQuerySet(self.model, using=self._db)
 
     def public(self):
         return self.get_queryset().filter(is_public=True)
 
+    def active(self):
+        self.get_queryset().active()
+
 
 class Channel(TimeStampedModel):
+    PENDING = 'PENDING'
+    ACTIVE = 'ACTIVE'
+    BANNED = 'BANNED'
+    ARCHIVED = 'ARCHIVED'
+
+    STATUS_CHOICES = (
+        (PENDING, 'Pending'),
+        (ACTIVE, 'Active'),
+        (ARCHIVED, 'Archived'),
+        (BANNED, 'Banned')
+    )
+
     # These are the default plugin slugs.
     DEFAULT_PLUGINS = ["logger", "ping", "last_seen", "help", "bangmotivate"]
 
@@ -118,18 +139,18 @@ class Channel(TimeStampedModel):
 
     password = models.CharField(max_length=250, blank=True, null=True,
                                 help_text="Password (mode +k) if the channel requires one")
+
+    status = models.CharField(choices=STATUS_CHOICES, default=PENDING, max_length=20)
+
+    # Flags
     is_public = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_pending = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    public_kudos = models.BooleanField(default=True)
 
     plugins = models.ManyToManyField('plugins.Plugin',
                                      through='plugins.ActivePlugin')
 
-    users = models.ManyToManyField('accounts.User',
-                                   through='accounts.Membership')
-    is_featured = models.BooleanField(default=False)
     fingerprint = models.CharField(max_length=36, blank=True, null=True)
-    public_kudos = models.BooleanField(default=True)
 
     notes = models.TextField(blank=True)
 
@@ -202,24 +223,11 @@ class Channel(TimeStampedModel):
             cache.set(cache_key, cached_config)
         return cached_config
 
-    def user_can_access(self, user, only_owners=False):
-        if only_owners:
-            if not user.is_authenticated():
-                return False
-            return self.membership_set.filter(user=user, is_owner=True)\
-                .exists()
-        if self.is_public:
-            return True
-        if self.users.filter(pk=user.id).exists():
-            return True
-        return False
-
     def user_can_access_kudos(self, user):
         if self.public_kudos:
             return True
         return (
             user.is_authenticated()
-            and self.membership_set.filter(user=user, is_admin=True).exists()
         )
 
     @property
@@ -320,10 +328,6 @@ class Channel(TimeStampedModel):
             self.private_slug = self.generate_private_slug()
 
         self.fingerprint = uuid.uuid4()
-
-        # If a room is active, it can't be pending.
-        if self.is_active:
-            self.is_pending = False
 
         super(Channel, self).save(*args, **kwargs)
 

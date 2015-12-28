@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from django.test import TestCase
-from django.contrib.auth.models import AnonymousUser
+import pytz
 from django.core import mail
 from django.core.urlresolvers import reverse
-import pytz
+from django.test import TestCase
 
 from botbot.apps.accounts import models as account_models
 from botbot.apps.bots.models import pretty_slug
@@ -34,7 +33,9 @@ class BaseTestCase(TestCase):
             chatbot=self.chatbot,
             name="#Test",
             slug="test",
-            is_public=True)
+            is_public=True,
+            status=models.Channel.ACTIVE
+        )
         logs_models.Log.objects.create(
             channel=self.public_channel,
             command='PRIVMSG',
@@ -44,30 +45,13 @@ class BaseTestCase(TestCase):
             name="#test-internal",
             is_public=False)
 
-        account_models.Membership.objects.create(
-            user=self.member, channel=self.private_channel, is_owner=True,
-            is_admin=True)
-
-
-class ModelTests(BaseTestCase):
-
-    def test_user_can_access(self):
-        self.assertTrue(self.private_channel.user_can_access(self.member))
-        self.assertTrue(self.public_channel.user_can_access(self.outsider))
-        self.assertFalse(self.private_channel.user_can_access(self.outsider))
-        self.assertFalse(self.private_channel.user_can_access(AnonymousUser))
-
-    def test_member_get_quantity_per_membership_kind(self):
-        self.assertEqual(
-            len(self.member.get_quantity_per_membership_kind()),
-            1)
-        for k, v in {'kind': u'personal', 'quantity': 1}.items():
-            self.assertEqual(
-                self.member.get_quantity_per_membership_kind()[0][k], v)
-
-
 
 class UrlTests(BaseTestCase):
+
+    def assertFormError(self, response, form, field, error_str):
+        """Override for Jinja2 templates"""
+        self.assertIn(error_str,
+                      response.context_data[form].errors[field])
 
     def test_help_channel(self):
         url = utils.reverse_channel(self.public_channel, "help_bot")
@@ -78,178 +62,6 @@ class UrlTests(BaseTestCase):
         url = utils.reverse_channel(self.public_channel, "log_current")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-
-    def test_add_channel_get(self):
-        self.client.login(username=self.member.username, password="secret")
-        url = reverse("add_channel")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_add_channel(self):
-        channel_count = models.Channel.objects.count()
-        self.client.login(username=self.member.username, password="secret")
-        url = reverse("add_channel")
-        response = self.client.post(url, {
-            "cb-is_public": True,
-            "cb-is_active": True,
-            "cb-chatbot": self.chatbot.pk,
-            "cb-name": "#newchannel",
-            "cb-plugins": [],
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(models.Channel.objects.count(), channel_count + 1)
-        channel = models.Channel.objects.get(name="#newchannel")
-        self.assertEqual(self.member in channel.users.all(), True)
-
-    def test_add_private_channel(self):
-        channel_count = models.Channel.objects.count()
-        self.client.login(username=self.member.username, password="secret")
-        url = reverse("add_channel")
-        response = self.client.post(url, {
-            "cb-is_public": False,
-            "cb-is_active": True,
-            "cb-chatbot": self.chatbot.pk,
-            "cb-name": "#newchannel2",
-            "cb-plugins": [],
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(models.Channel.objects.count(), channel_count + 1)
-        channel = models.Channel.objects.get(name="#newchannel2")
-        self.assertEqual(self.member in channel.users.all(), True)
-
-    def test_add_channel_identifiable_url(self):
-        self.client.login(username=self.member.username, password="secret")
-        url = reverse("add_channel")
-
-        for public, name in (
-                    (True, 'open'),
-                    (True, 'obfuscated'),
-                    (False,'members_only'),
-                    (False, 'top_secret'),
-                ):
-
-            response = self.client.post(url, {
-                "cb-is_public": public,
-                "cb-is_active": True,
-                "cb-chatbot": self.chatbot.pk,
-                "cb-name": "#{}".format(name),
-                "cb-plugins": [],
-            })
-            self.assertEqual(response.status_code, 302)
-            channel = models.Channel.objects.get(name="#{}".format(name))
-            # Non-identifiable channel, channel name shouldn't be in url.
-            channel_url = utils.reverse_channel(channel, "log_current")
-            if public:
-                self.assertIn(name, channel_url)
-            else:
-                self.assertNotIn(name, channel_url)
-
-    def test_dashboard_annonymous_get(self):
-        url = reverse("settings_dashboard")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_dashboard_authenticated_get(self):
-        self.client.login(username=self.member.username, password="secret")
-        url = reverse("settings_dashboard")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_delete_channel_annonymous_get(self):
-        url = utils.reverse_channel(self.public_channel, "delete_channel")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_delete_channel_owner_get(self):
-        channel_count = models.Channel.objects.count()
-        self.client.login(username=self.member.username, password="secret")
-        url = utils.reverse_channel(self.private_channel, "delete_channel")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(models.Channel.objects.count(), channel_count)
-
-    def test_delete_channel_owner_post(self):
-        channel_count = models.Channel.objects.count()
-        self.client.login(username=self.member.username, password="secret")
-        url = utils.reverse_channel(self.private_channel, "delete_channel")
-        response = self.client.post(url, {})
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("settings_dashboard"))
-        self.assertEqual(models.Channel.objects.count(), channel_count - 1)
-        with self.assertRaises(models.Channel.DoesNotExist):
-            models.Channel.objects.get(id=self.private_channel.id)
-
-    def test_show_channel_request_form(self):
-        url = reverse('request_channel')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_request_channel_form_submission(self):
-        url = reverse("request_channel")
-
-        response = self.client.post(url, {
-            "channel_name": "#test_channel_name",
-            "server": self.chatbot.pk,
-            "name": "test_name",
-            "email": "test@example.com",
-            "nick": "test_nick",
-            "op": True,
-            "description": "This is a test"
-        })
-        self.assertRedirects(response, reverse('request_channel_success'))
-        channel = models.Channel.objects.get(name="#test_channel_name")
-        self.assertFalse(channel.is_active)
-        self.assertEqual(len(mail.outbox), 1)
-
-    def test_request_channel_form_submission_channel_with_missing_pound_sign(self):
-        url = reverse("request_channel")
-
-        response = self.client.post(url, {
-            "channel_name": "test_channel_name",
-            "server": self.chatbot.pk,
-            "name": "test_name",
-            "email": "test@example.com",
-            "nick": "test_nick",
-            "op": True,
-            "description": "This is a test"
-        })
-        self.assertRedirects(response, reverse('request_channel_success'))
-        # make sure wer saved it with a pound sign.
-        channel = models.Channel.objects.get(name="#test_channel_name")
-        self.assertFalse(channel.is_active)
-        self.assertEqual(len(mail.outbox), 1)
-
-    def test_request_channel_form_invalid_submission(self):
-        url = reverse("request_channel")
-
-        response = self.client.post(url, {})
-        self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, "form", "name",
-                             "This field is required.")
-        self.assertFormError(response, "form", "server",
-                             "This field is required.")
-        self.assertFormError(response, "form", "channel_name",
-                             "This field is required.")
-        self.assertFormError(response, "form", "email",
-                             "This field is required.")
-        self.assertFormError(response, "form", "nick",
-                             "This field is required.")
-
-    def test_request_channel_form_duplicate_channel_submission(self):
-        url = reverse("request_channel")
-
-        response = self.client.post(url, {
-            "channel_name": self.public_channel.name,
-            "server" : self.chatbot.pk,
-            "name": "test_name",
-            "email" : "test@example.com",
-            "nick" : "test_nick",
-            "op" : True
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, "form", "channel_name",
-                             '<a href="{}">{}</a> is already being monitored.'.format(
-                                self.public_channel.get_absolute_url(), self.public_channel.name))
 
 
 class PrettySlugTestCase(TestCase):

@@ -1,10 +1,10 @@
 """Django admin configuration for the bot objects.
 """
+import redis
+from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
-from django import forms
-import redis
 
 from . import models
 
@@ -22,11 +22,6 @@ class ActivePluginInline(admin.StackedInline):
         return 0
 
 
-class MembershipInline(admin.TabularInline):
-    model = models.Channel.users.through
-    raw_id_fields = ("user",)
-    extra = 0
-
 
 class ChatBotAdmin(admin.ModelAdmin):
     exclude = ('connection', 'server_identifier')
@@ -40,7 +35,7 @@ class ChatBotAdmin(admin.ModelAdmin):
 
     def usage(self, obj):
         return "%d%%" % (
-            (obj.channel_set.count() / float(obj.max_channels)) * 100)
+            (obj.channel_set.filter(status=models.Channel.ACTIVE).count() / float(obj.max_channels)) * 100)
 
 
 def botbot_refresh(modeladmin, request, queryset):
@@ -55,6 +50,7 @@ botbot_refresh.short_description = "Reload botbot-bot configuration"
 class ChannelForm(forms.ModelForm):
     class Meta:
         model = models.Channel
+        exclude = []
 
     def clean_private_slug(self):
         return self.cleaned_data['private_slug'] or None
@@ -62,17 +58,15 @@ class ChannelForm(forms.ModelForm):
 
 class ChannelAdmin(admin.ModelAdmin):
     form = ChannelForm
-    list_display = ('name', 'chatbot', 'is_active',
-                    'is_public', 'is_featured', 'is_pending', 'created', 'updated')
-    list_filter = ('chatbot', 'is_active', 'is_public',
-                   'is_featured', 'is_pending')
+    list_display = ('name', 'chatbot', 'status', 'is_featured', 'created', 'updated')
+    list_filter = ('status', 'is_featured', 'is_public', 'chatbot')
     prepopulated_fields = {
         'slug': ('name',)
     }
-    list_editable = ('is_active',)
+    list_editable = ('chatbot','status',)
     readonly_fields = ('fingerprint', 'created', 'updated')
     search_fields = ('name', 'chatbot__server')
-    inlines = [ActivePluginInline, MembershipInline]
+    inlines = [ActivePluginInline]
     actions = [botbot_refresh]
 
 
@@ -82,30 +76,15 @@ class PublicChannelApproval(ChannelAdmin):
 
     def get_queryset(self, request):
         qs = super(PublicChannelApproval, self).get_queryset(request)
-        return qs.filter(is_pending=True, is_public=True)
+        return qs.filter(status=self.model.ACTIVE, is_public=True)
 
-
-class PersonalChannelApproval(ChannelAdmin):
-    def has_add_permission(self, request):
-        return False
-
-    def get_queryset(self, request):
-        qs = super(PersonalChannelApproval, self).get_queryset(request)
-        return qs.filter(is_pending=True, is_public=False)
 
 class PublicChannels(models.Channel):
     class Meta:
         proxy = True
         verbose_name = "Pending Public Channel"
 
-class PersonalChannels(models.Channel):
-    class Meta:
-        proxy = True
-        verbose_name = "Pending Personal Channel"
-
-
 admin.site.register(PublicChannels, PublicChannelApproval)
-admin.site.register(PersonalChannels, PersonalChannelApproval)
 
 admin.site.register(models.ChatBot, ChatBotAdmin)
 admin.site.register(models.Channel, ChannelAdmin)
