@@ -15,7 +15,7 @@ class Plugin(BasePlugin):
     Logs all activity.
 
     I keep extensive logs on all the activity in `{{ channel.name }}`.
-    You can read and search them at {{ SITE }}{{ channel.get_absolute_url }}.
+    You can read and search them at {{ SITE }}.
     """
     config_class = Config
 
