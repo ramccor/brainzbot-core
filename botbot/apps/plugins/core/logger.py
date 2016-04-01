@@ -5,6 +5,7 @@ from botbot.apps.plugins.utils import convert_nano_timestamp
 from botbot_plugins.base import BasePlugin
 import botbot_plugins.config as config
 
+
 class Config(config.BaseConfig):
     ignore_prefix = config.Field(
         default="!-",
@@ -12,12 +13,14 @@ class Config(config.BaseConfig):
         help_text="Don't log lines starting with this string"
     )
 
+
 def should_ignore_text(text, ignore_prefix):
     return any(
         (re.match(prefix, text, flags=re.IGNORECASE) is not None)
         for prefix in ignore_prefix
     )
-    
+
+
 class Plugin(BasePlugin):
     """
     Logs all activity.
@@ -33,18 +36,18 @@ class Plugin(BasePlugin):
         # is part of a /query
         if line._channel_name.startswith("#"):
             ignore_prefix = self.config['ignore_prefix']
-            
+
             if ignore_prefix:
                 if not isinstance(ignore_prefix, list):
                     ignore_prefix = [ignore_prefix]
             else:
                 ignore_prefix = []
-            
+
             # Delete ACTION prefix created by /me
             text = line.text
             if text.startswith("ACTION "):
                 text = text[7:]
-            
+
             if not should_ignore_text(text, ignore_prefix):
                 Log.objects.create(
                     channel_id=line._channel.pk,
