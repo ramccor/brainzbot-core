@@ -45,7 +45,7 @@ class Plugin(BasePlugin):
             if text.startswith("ACTION "):
                 text = text[7:]
             
-            if should_ignore_text(text, ignore_prefix):
+            if not should_ignore_text(text, ignore_prefix):
                 Log.objects.create(
                     channel_id=line._channel.pk,
                     timestamp=line._received,
