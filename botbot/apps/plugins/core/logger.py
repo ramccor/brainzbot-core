@@ -1,7 +1,6 @@
 import re
 
 from botbot.apps.logs.models import Log
-from botbot.apps.plugins.utils import convert_nano_timestamp
 from botbot_plugins.base import BasePlugin
 import botbot_plugins.config as config
 
@@ -10,7 +9,10 @@ class Config(config.BaseConfig):
     ignore_prefixes = config.Field(
         default=["!-"],
         required=False,
-        help_text="Don't log lines starting with any strings in this list"
+        help_text="""
+            Specify a list of regular expressions which match
+            the start of messages to be ignored (excluded from the logs)
+        """
     )
 
 
