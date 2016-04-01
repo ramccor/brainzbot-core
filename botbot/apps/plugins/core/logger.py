@@ -16,7 +16,10 @@ class Config(config.BaseConfig):
 
 def should_ignore_text(text, ignore_prefixes):
     return any(
-        (re.match(prefix, text, flags=re.IGNORECASE) is not None)
+        (
+            prefix and
+            re.match(prefix, text, flags=re.IGNORECASE) is not None
+        )
         for prefix in ignore_prefixes
     )
 
