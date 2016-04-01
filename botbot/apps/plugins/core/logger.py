@@ -8,9 +8,9 @@ import botbot_plugins.config as config
 
 class Config(config.BaseConfig):
     ignore_prefix = config.Field(
-        default="!-",
+        default=["!-"],
         required=False,
-        help_text="Don't log lines starting with this string"
+        help_text="Don't log lines starting with any strings in this list"
     )
 
 
