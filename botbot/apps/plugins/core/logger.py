@@ -7,17 +7,17 @@ import botbot_plugins.config as config
 
 
 class Config(config.BaseConfig):
-    ignore_prefix = config.Field(
+    ignore_prefixes = config.Field(
         default=["!-"],
         required=False,
         help_text="Don't log lines starting with any strings in this list"
     )
 
 
-def should_ignore_text(text, ignore_prefix):
+def should_ignore_text(text, ignore_prefixes):
     return any(
         (re.match(prefix, text, flags=re.IGNORECASE) is not None)
-        for prefix in ignore_prefix
+        for prefix in ignore_prefixes
     )
 
 
@@ -35,20 +35,20 @@ class Plugin(BasePlugin):
         # If the channel does not start with "#" that means the message
         # is part of a /query
         if line._channel_name.startswith("#"):
-            ignore_prefix = self.config['ignore_prefix']
+            ignore_prefixes = self.config['ignore_prefixes']
 
-            if ignore_prefix:
-                if not isinstance(ignore_prefix, list):
-                    ignore_prefix = [ignore_prefix]
+            if ignore_prefixes:
+                if not isinstance(ignore_prefixes, list):
+                    ignore_prefixes = [ignore_prefixes]
             else:
-                ignore_prefix = []
+                ignore_prefixes = []
 
             # Delete ACTION prefix created by /me
             text = line.text
             if text.startswith("ACTION "):
                 text = text[7:]
 
-            if not should_ignore_text(text, ignore_prefix):
+            if not should_ignore_text(text, ignore_prefixes):
                 Log.objects.create(
                     channel_id=line._channel.pk,
                     timestamp=line._received,
