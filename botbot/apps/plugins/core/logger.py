@@ -1,14 +1,30 @@
+import re
+
 from botbot.apps.logs.models import Log
-from botbot.apps.plugins.utils import convert_nano_timestamp
 from botbot_plugins.base import BasePlugin
 import botbot_plugins.config as config
 
+
 class Config(config.BaseConfig):
-    ignore_prefix = config.Field(
-        default="!-",
+    ignore_prefixes = config.Field(
+        default=["!-"],
         required=False,
-        help_text="Don't log lines starting with this string"
+        help_text="""
+            Specify a list of regular expressions which match
+            the start of messages to be ignored (excluded from the logs)
+        """
     )
+
+
+def should_ignore_text(text, ignore_prefixes):
+    return any(
+        (
+            prefix and
+            re.match(prefix, text, flags=re.IGNORECASE) is not None
+        )
+        for prefix in ignore_prefixes
+    )
+
 
 class Plugin(BasePlugin):
     """
@@ -24,14 +40,20 @@ class Plugin(BasePlugin):
         # If the channel does not start with "#" that means the message
         # is part of a /query
         if line._channel_name.startswith("#"):
-            ignore_prefix = self.config['ignore_prefix']
-            
+            ignore_prefixes = self.config['ignore_prefixes']
+
+            if ignore_prefixes:
+                if not isinstance(ignore_prefixes, list):
+                    ignore_prefixes = [ignore_prefixes]
+            else:
+                ignore_prefixes = []
+
             # Delete ACTION prefix created by /me
             text = line.text
             if text.startswith("ACTION "):
                 text = text[7:]
-            
-            if not (ignore_prefix and text.startswith(ignore_prefix)):
+
+            if not should_ignore_text(text, ignore_prefixes):
                 Log.objects.create(
                     channel_id=line._channel.pk,
                     timestamp=line._received,
