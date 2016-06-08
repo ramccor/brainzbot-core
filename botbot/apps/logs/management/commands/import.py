@@ -81,25 +81,25 @@ class Command(BaseCommand):
         parser.add_argument('source_dir', type=str)
 
     def handle(self, *args, **options):
-        if len(args) != 2:
+        if 'channel' not in options or 'source_dir' not in options:
             raise CommandError('Channel name and source'
-                               'directory are required.')
+                               ' directory are required.')
 
         self.bot = ChatBot.objects.get(nick='BrainzBot')
 
-        channel_name = '#' + args[0]
+        channel_name = '#' + options['channel']
         self.channel = _get_channel(channel_name)
 
         print (
             'About to import logs from {} to Channel "{}" with Bot "{}"'
-            .format(args[1], channel_name, self.bot.nick)
+            .format(options['source_dir'], channel_name, self.bot.nick)
         )
 
         prompt = raw_input("Continue? (Y/n) ")
         if prompt and prompt.lower() != 'y':
             raise CommandError('User aborted import.')
 
-        self._import_channel(args[1])
+        self._import_channel(options['source_dir'])
 
     def _import_channel(self, root):
         for directory, _, filenames in os.walk(root):
