@@ -54,7 +54,7 @@ def _get_existing_entries(parsed_log, timestamp, nick, channel):
     creating duplicate entries when timestamps differ slightly.
     """
 
-    dt1 = datetime.timedelta(seconds=1)
+    dt1 = datetime.timedelta(seconds=3)
     earliest = timestamp - dt1
     latest = timestamp + dt1
     return Log.objects.filter(
