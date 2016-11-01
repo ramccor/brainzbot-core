@@ -2,7 +2,7 @@
 
 {% block content %}
     <section class="preview-box">
-        <h3>Featured channels</h3>
+        <h3>Main channels</h3>
         <ul class="channel-list">
         {% cache 600 "signup-featured-channels-list" %}
         {% for channel in featured_channels %}
