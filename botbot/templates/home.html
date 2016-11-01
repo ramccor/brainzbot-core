@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+{% block head_title %}Home {{ super() }}{% endblock %}
+
 {% block content %}
     <section class="preview-box">
-        <h3>Main channels</h3>
+        <h2>Main channels</h2>
         <ul class="channel-list">
         {% cache 600 "signup-featured-channels-list" %}
         {% for channel in featured_channels %}
@@ -12,6 +14,7 @@
         </ul>
     </section>
 
+    <h3>Other channels</h3>
     <ul class="channel-list-compact">
     {% cache 600 "signup-public-channels" %}
     {% for channel in public_not_featured_channels %}
