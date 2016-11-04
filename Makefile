@@ -61,6 +61,7 @@ less-install: $(LESS_BIN)
 
 less-compile:
 	lessc botbot/less/screen.less > botbot/static/css/screen.css
+	lessc botbot/less/home.less > botbot/static/css/home.css
 
 $(WATCHMEDO_BIN):
 	# Install watchdog to run commands when files change

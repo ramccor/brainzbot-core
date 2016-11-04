@@ -2,17 +2,22 @@
 
 {% block head_title %}Home {{ super() }}{% endblock %}
 
+{% block extra_head %}
+<link href="/static/css/home.css" rel="stylesheet" type="text/css" media="screen,projection" />
+{% endblock %}
+
 {% block content %}
-    <section class="preview-box">
-        <h2>Main channels</h2>
-        <ul class="channel-list">
-        {% cache 600 "signup-featured-channels-list" %}
-        {% for channel in featured_channels %}
-            <li><a href="{{ channel_url(channel, 'log_current') }}">{{ channel.name }}</a></li>
-        {% endfor %}
-        {% endcache %}
-        </ul>
-    </section>
+    <img src="{{ static("img/MetaBrainz_logo.svg") }}" type="image/svg+xml" alt="MetaBrainz"></img>
+    <h1>IRC Logs</h1>
+
+    <h2>Main channels</h2>
+    <ul class="channel-list">
+    {% cache 600 "signup-featured-channels-list" %}
+    {% for channel in featured_channels %}
+        <li><a href="{{ channel_url(channel, 'log_current') }}">{{ channel.name }}</a></li>
+    {% endfor %}
+    {% endcache %}
+    </ul>
 
     <h3>Other channels</h3>
     <ul class="channel-list-compact">

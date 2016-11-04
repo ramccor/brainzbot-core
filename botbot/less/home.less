@@ -1,0 +1,36 @@
+@import "globals.less";
+
+// Mixin stolen from BootStrap, better than importing the whole thing
+.center-block() {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+#Site-Header {
+  display: none;
+}
+
+#Site-Footer {
+  width: 500px;
+  .center-block();
+}
+
+#Content {
+  width: 500px;
+  .center-block();
+
+  h1 {
+    text-align: right;
+    margin: -20px 35px 30px;
+    padding-right: 129px;
+    font-size: 50px;
+    font-family: "Droid sans",Helvetica,sans-serif;
+    color: @highlight2;
+  }
+
+  h2, h3 {
+    color: @darkContrast2;
+  }
+}

@@ -1,0 +1,27 @@
+#Site-Header {
+  display: none;
+}
+#Site-Footer {
+  width: 500px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#Content {
+  width: 500px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#Content h1 {
+  text-align: right;
+  margin: -20px 35px 30px;
+  padding-right: 129px;
+  font-size: 50px;
+  font-family: "Droid sans", Helvetica, sans-serif;
+  color: #613016;
+}
+#Content h2,
+#Content h3 {
+  color: #3a3e3f;
+}
