@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import time
 from urlparse import urljoin
 from .. import config
 from ..base import BasePlugin
@@ -12,6 +13,7 @@ class Config(config.BaseConfig):
     jira_url = config.Field(help_text="JIRA Link, eg: 'https://tickets.metabrainz.org'")
     rest_api_suffix = config.Field(help_text="Suffix for the JIRA REST API, eg: 'rest/api/2/project'", default="rest/api/2/project")
     ignored_bots = config.Field(help_text="comma seperated names of your own bot and other bots you want to ignore, eg: BrainzBot, github")
+    issue_cooldown = config.Field(help_text="Time to wait in seconds before an issue is mentioned again", default=60)
 
 
 class Plugin(BasePlugin):
@@ -53,12 +55,14 @@ class Plugin(BasePlugin):
                         name = response_text['key']
                         desc = response_text['fields']['summary']
 
-                        # Only post URL if issue isn't already mentioned as part of one
-                        if re.search(ur'(http)(\S*)/({})\b'.format(name), line.text):
-                            reply.append("{}: {}".format(name, desc))
-                        else:
-                            return_url = urljoin(self.config['jira_url'], "browse/{}".format(name))
-                            reply.append("{}: {} {}".format(name, desc, return_url))
+                        # Check if issue has recently been processed
+                        if not self._issue_on_cooldown(name):
+                            # Only post URL if issue isn't already mentioned as part of one
+                            if re.search(ur'(http)(\S*)/({})\b'.format(name), line.text):
+                                reply.append("{}: {}".format(name, desc))
+                            else:
+                                return_url = urljoin(self.config['jira_url'], "browse/{}".format(name))
+                                reply.append("{}: {} {}".format(name, desc, return_url))
 
             if line.text.lower().startswith("[off]"):
                 return "[off] {}".format("\n[off] ".join(reply))
@@ -93,3 +97,24 @@ class Plugin(BasePlugin):
             ignored_bots = []
         ignored_bots = [bot.strip() for bot in ignored_bots]
         return ignored_bots
+
+    def _issue_on_cooldown(self, issue):
+        recent_issues = {}
+
+        if self.retrieve('recent_issues'):
+            recent_issues = json.loads(self.retrieve('recent_issues'))
+
+        # Update issue timestamps
+        now = int(time.time())
+        for name, timestamp in recent_issues.items():  # Key is issue name, value is int unix timestamp
+            if (now - timestamp) > self.config['issue_cooldown']:
+                del recent_issues[name]
+
+        if issue in recent_issues:
+            return True
+
+        # Add issue to recent ones
+        recent_issues[issue] = now
+        self.store('recent_issues', json.dumps(recent_issues))
+
+        return False

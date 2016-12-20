@@ -1,5 +1,6 @@
 import pytest
 import json
+import time
 from mock import patch, call
 import requests
 from botbot_plugins.base import DummyApp
@@ -30,10 +31,16 @@ def patched_get(*args, **kwargs):
         return FakeUserResponse("TEST-000", "Default Test")
 
 
+def clear_recent_issues(app):
+    ukey = u'{0}:{1}'.format('jira', 'recent_issues'.strip())
+    app.storage.delete(ukey)
+
+
 @pytest.fixture
 def app():
     dummy_app = DummyApp(test_plugin=jira.Plugin())
-    dummy_app.set_config('jira', {'jira_url': 'https://tickets.test.org', 'bot_name': 'testbot'})
+    dummy_app.set_config('jira', {'jira_url': 'https://tickets.test.org', 'bot_name': 'testbot', 'issue_cooldown': 2})
+
     return dummy_app
 
 
@@ -55,23 +62,41 @@ def test_jira(app):
         mock_get.assert_called_with(
             'https://tickets.test.org/rest/api/2/issue/TEST-123')
         assert responses == ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
+        clear_recent_issues(app)
 
-    # Test responside when issue is mentioned as part of url
+
+    # Test response when issue is mentioned as part of url
     with patch.object(requests, 'get') as mock_get:
+        app.storage.delete('recent_issues')
         mock_get.side_effect = patched_get
         responses = app.respond("Check out https://tickets.test.org/browse/TEST-123")
         mock_get.assert_called_with(
             'https://tickets.test.org/rest/api/2/issue/TEST-123')
         assert responses == ["TEST-123: Testing JIRA plugin"]
+        clear_recent_issues(app)
 
 
 def test_jira_multiple(app):
 
     # Test multiple issues in a single message
     with patch.object(requests, 'get') as mock_get:
+        clear_recent_issues(app)
         mock_get.side_effect = patched_get
         responses = app.respond("I think TEST-123 and TEST-234 are related")
         expected_calls = [call('https://tickets.test.org/rest/api/2/issue/TEST-123'), call('https://tickets.test.org/rest/api/2/issue/TEST-234')]
         expected_response = ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123", "TEST-234: Something is being tested again https://tickets.test.org/browse/TEST-234"]
         assert mock_get.mock_calls == expected_calls
         assert responses[0].split('\n') == expected_response
+        clear_recent_issues(app)
+
+
+def test_jira_cooldown(app):
+
+    # Test issue cooldown function
+    with patch.object(requests, 'get') as mock_get:
+        mock_get.side_effect = patched_get
+        assert app.respond("I just assigned TEST-123 to testuser") == ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
+        assert app.respond("Okay, I will work on TEST-123") == []
+        time.sleep(3)
+        assert app.respond("TEST-123 is done") == ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
+        clear_recent_issues(app)
