@@ -12,7 +12,7 @@ class Config(config.BaseConfig):
 
     jira_url = config.Field(help_text="JIRA Link, eg: 'https://tickets.metabrainz.org'")
     rest_api_suffix = config.Field(help_text="Suffix for the JIRA REST API, eg: 'rest/api/2/project'", default="rest/api/2/project")
-    ignored_bots = config.Field(help_text="comma seperated names of your own bot and other bots you want to ignore, eg: BrainzBot, github")
+    ignored_nicks = config.Field(help_text="comma seperated names of your own bot and other nicks you want to ignore, eg: BrainzBot, github")
     issue_cooldown = config.Field(help_text="Time to wait in seconds before an issue is mentioned again", default=60)
 
 
