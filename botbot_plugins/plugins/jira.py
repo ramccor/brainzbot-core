@@ -37,7 +37,7 @@ class Plugin(BasePlugin):
             Eg:
                 Can you please checkup on PROJECT-123
         """
-        if line.user not in self._get_ignored_bots():
+        if line.user not in self._get_ignored_nicks():
             api_url = urljoin(self.config['jira_url'], self.config['rest_api_suffix'])
             projects = json.loads(self.retrieve('projects'))
 
@@ -90,13 +90,13 @@ class Plugin(BasePlugin):
 
         return "Could not update projects list"
 
-    def _get_ignored_bots(self):
+    def _get_ignored_nicks(self):
         try:
-            ignored_bots = self.config['ignored_bots'].split(",")
+            ignored_nicks = self.config['ignored_nicks'].split(",")
         except AttributeError:
-            ignored_bots = []
-        ignored_bots = [bot.strip() for bot in ignored_bots]
-        return ignored_bots
+            ignored_nicks = []
+        ignored_nicks = [bot.strip() for bot in ignored_nicks]
+        return ignored_nicks
 
     def _issue_on_cooldown(self, issue):
         recent_issues = {}
