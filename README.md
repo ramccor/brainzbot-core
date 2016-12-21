@@ -15,6 +15,8 @@ $ botbot-shell brain,images
 
 ## Tests
 
+[![Build Status](https://travis-ci.org/metabrainz/botbot-plugins.svg?branch=master)](https://travis-ci.org/metabrainz/botbot-plugins/)
+
 ```
 py.test botbot_plugins
 ```
