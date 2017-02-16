@@ -64,7 +64,6 @@ def test_jira(app):
         assert responses == ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
         clear_recent_issues(app)
 
-
     # Test response when issue is mentioned as part of url
     with patch.object(requests, 'get') as mock_get:
         app.storage.delete('recent_issues')
@@ -73,6 +72,22 @@ def test_jira(app):
         mock_get.assert_called_with(
             'https://tickets.test.org/rest/api/2/issue/TEST-123')
         assert responses == ["TEST-123: Testing JIRA plugin"]
+        clear_recent_issues(app)
+
+    # Test response to [off] messages
+    with patch.object(requests, 'get') as mock_get:
+        mock_get.side_effect = patched_get
+        responses = app.respond("[off] I just assigned TEST-123 to testuser")
+        mock_get.assert_called_with(
+            'https://tickets.test.org/rest/api/2/issue/TEST-123')
+        assert responses == ["[off] TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
+        clear_recent_issues(app)
+
+    # Test response to invalid tickets
+    with patch.object(requests, 'get') as mock_get:
+        mock_get.side_effect = patched_get
+        responses = app.respond("[off] My password is ABC-123")
+        assert responses == []
         clear_recent_issues(app)
 
 
