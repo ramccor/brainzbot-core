@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
 
     To store an abbreviation for a repo use
 
-    @gh:abbreviation:repo_name
+    @gh:abbreviation=repo_name
 
     To retrieve a PR simply use:
 
