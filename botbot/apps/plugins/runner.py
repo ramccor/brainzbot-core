@@ -204,27 +204,33 @@ class PluginRunner(object):
                 continue
             if (not key.startswith('__') and
                     getattr(attr, 'route_rule', None)):
-                router = attr.route_rule[0]
-                if router == "commands":
-                    LOG.info('Route: %s.%s listens to %s for command %s',
-                             plugin.slug, key, attr.route_rule[0],
-                             attr.route_rule[1])
-                    self.routers["commands"].plugins.setdefault(
-                        plugin.slug, []).append((attr.route_rule[1], attr, plugin))
+                router_name = attr.route_rule[0]
+                if router_name == "commands":
+                    cmd = attr.route_rule[1]
 
-                elif router == "regex_commands":
                     LOG.info('Route: %s.%s listens to %s for command %s',
-                             plugin.slug, key, attr.route_rule[0],
-                             attr.route_rule[1])
+                             plugin.slug, key, router_name, cmd)
+
+                    self.routers["commands"].plugins.setdefault(
+                        plugin.slug, []).append((cmd, attr, plugin))
+
+                elif router_name == "regex_commands":
+                    cmd = attr.route_rule[1]
+                    rule = attr.route_rule[2]
+
+                    LOG.info('Route: %s.%s listens to %s for command %s and rule %s',
+                             plugin.slug, key, router_name, cmd, rule)
+
                     self.routers["regex_commands"].plugins.setdefault(
-                        plugin.slug, []).append((attr.route_rule[1], attr.route_rule[2], attr, plugin))
+                        plugin.slug, []).append((cmd, rule, attr, plugin))
 
                 else:
+                    rule = attr.route_rule[1]
+
                     LOG.info('Route: %s.%s listens to %s for matches to %s',
-                             plugin.slug, key, attr.route_rule[0],
-                             attr.route_rule[1])
-                    self.routers[attr.route_rule[0]].plugins.setdefault(
-                        plugin.slug, []).append((attr.route_rule[1], attr, plugin))
+                             plugin.slug, key, router_name, rule)
+                    self.routers[router_name].plugins.setdefault(
+                        plugin.slug, []).append((rule, attr, plugin))
 
     def listen(self):
         """Listens for incoming messages on the Redis queue"""
