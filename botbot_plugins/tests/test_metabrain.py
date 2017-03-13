@@ -7,7 +7,7 @@ from botbot_plugins.plugins import metabrain
 
 @pytest.fixture
 def app():
-    return DummyApp(test_plugin=metabrain.Plugin())
+    return DummyApp(test_plugin=metabrain.Plugin(), command_prefix="!")
 
 
 def test_remember(app):
