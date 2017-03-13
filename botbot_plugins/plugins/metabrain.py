@@ -11,15 +11,19 @@ class Plugin(BasePlugin):
 
     To have me remember something for you, ask me in this format:
 
-        {{ command_prefix }}rem thing=stuff I need to remember
+        {{ command_prefix }}remember thing=stuff I need to remember
 
     When you want me to recall the information, ask me in this format:
 
-        {{ command_prefix }}rec thing
+        {{ command_prefix }}recall thing
 
     I will prompty respond to your request with:
 
         stuff I need to remember
+
+    To make me forget something user
+
+        {{ command_prefix }}forget thing
     """
 
     @listens_to_regex_command("remember", ur"(?P<key>.+?)=\s*(?P<value>.*)")

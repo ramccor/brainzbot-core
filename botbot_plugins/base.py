@@ -14,6 +14,15 @@ class PrivateMessage(object):
         self.msg = msg
 
 
+class Router(object):
+    """
+    Custom Router object
+    """
+    def __init__(self, name):
+        self.name = name
+        self.plugins = {}
+
+
 class BasePlugin(object):
     "All plugins inherit this class"
     app = None
@@ -131,9 +140,13 @@ class DummyApp(Cmd):
         # super(DummyApp, self).__init__(*args, **kwargs)
         self.responses = []
         self.storage = fakeredis.FakeStrictRedis()
-        self.messages_router = {}
-        self.mentions_router = {}
-        self.firehose_router = {}
+        self.routers = {
+            "firehose": Router("firehose"),
+            "messages": Router("messages"),
+            "mentions": Router("mentions"),
+            "commands": Router("commands"),
+            "regex_commands": Router("regex_commands")
+        }
         self.plugin_configs = {}
         if 'test_plugin' in kwargs:
             self.test_mode = True
@@ -141,6 +154,13 @@ class DummyApp(Cmd):
             del(kwargs['test_plugin'])
         else:
             self.test_mode = False
+
+        if "command_prefix" in kwargs:
+            self.command_prefix = kwargs["command_prefix"]
+            del(kwargs["command_prefix"])
+        else:
+            self.command_prefix = "!"
+
         Cmd.__init__(self, *args, **kwargs)
 
     def register(self, plugin):
@@ -151,18 +171,20 @@ class DummyApp(Cmd):
         plugin.app = self
         for key in dir(plugin):
             attr = getattr(plugin, key)
-            if (not key.startswith('__') and
-                    getattr(attr, 'route_rule', None) and
-                    attr.route_rule[0] in ('messages', 'mentions', 'firehose')):
-                self.output('Route {}: {} ({}, {})'.format(attr.route_rule[0],
-                                                           plugin.slug, key,
-                                                           attr.route_rule[1]))
-                getattr(self, attr.route_rule[0] + '_router').setdefault(
-                    plugin.slug, []).append((attr.route_rule[1], attr))
-                # Setup the plugin config
-                if (plugin.config_class and
-                        plugin.slug not in self.plugin_configs):
-                    self.plugin_configs[plugin.slug] = plugin.config_class()
+            if not key.startswith('__') and getattr(attr, 'route_rule', None):
+                router_name = attr.route_rule[0]
+                if router_name in [r.name for _, r in self.routers.iteritems()]:
+                    rule = attr.route_rule[1]
+
+                    self.output('Route {}: {} ({}, {})'.format(router_name,
+                                                               plugin.slug, key,
+                                                               rule))
+                    self.routers[router_name].plugins.setdefault(
+                        plugin.slug, []).append((rule, attr))
+                    # Setup the plugin config
+                    if (plugin.config_class and
+                            plugin.slug not in self.plugin_configs):
+                        self.plugin_configs[plugin.slug] = plugin.config_class()
 
     def output(self, text):
         """Print text to stdout for repl. No-op for tests"""
@@ -215,26 +237,50 @@ class DummyApp(Cmd):
 
     def dispatch(self, line):
         """Given a line, dispatch it to the right function(s)"""
-        self.check_routes_for_matches(line, self.messages_router)
+        self.check_routes_for_matches(line, self.routers["messages"])
 
         if line.is_direct_message:
-            self.check_routes_for_matches(line, self.mentions_router)
+            self.check_routes_for_matches(line, self.routers["mentions"])
 
-        self.check_routes_for_matches(line, self.firehose_router)
+        if line.text.startswith(self.command_prefix):
+            self.check_routes_for_matches(line, self.routers["commands"])
+            self.check_routes_for_matches(line, self.routers["regex_commands"])
+
+        self.check_routes_for_matches(line, self.routers["firehose"])
 
     def check_routes_for_matches(self, line, router):
         """Checks if line matches the routes' rules and calls functions"""
-        for _, route_list in router.items():
+        for _, route_list in router.plugins.items():
             for rule, func in route_list:
-                match = re.match(rule, line.text, re.IGNORECASE)
-                if match:
-                    response = func(line, **match.groupdict())
-                    if response:
-                        if isinstance(response, PrivateMessage):
-                            self.responses.append(response.msg)
-                            self.output('[o__o]: ' + response.msg)
-                        else:
-                            self.responses.append(response)
-                            self.output('[o__o]: ' + response)
+                if router.name == "commands":
+                    cmd = rule
+                    args = line.text.split()
+                    if args[0] == self.command_prefix + cmd:
+                        arg_dict = {"args": args[1:]}
+                        self.run_plugin(line, func, arg_dict)
+
+                elif router.name == "regex_commands":
+                    cmd = rule[0]
+                    regex = rule[1]
+                    args = line.text.split()
+                    if args[0] == self.command_prefix + cmd:
+                        linetext = " ".join(args[1:])
+                        match = re.match(regex, linetext, re.IGNORECASE)
+                        if match:
+                            self.run_plugin(line, func, match.groupdict())
+                else:
+                    match = re.match(rule, line.text, re.IGNORECASE)
+                    if match:
+                        self.run_plugin(line, func, match.groupdict())
+
+    def run_plugin(self, line, func, arg_dict):
+        response = func(line, **arg_dict)
+        if response:
+            if isinstance(response, PrivateMessage):
+                self.responses.append(response.msg)
+                self.output('[o__o]: ' + response.msg)
+            else:
+                self.responses.append(response)
+                self.output('[o__o]: ' + response)
 
 app = DummyApp()
