@@ -202,35 +202,16 @@ class PluginRunner(object):
                 attr = getattr(plugin, key)
             except AttributeError:
                 continue
-            if (not key.startswith('__') and
-                    getattr(attr, 'route_rule', None)):
+
+            if not key.startswith('__') and getattr(attr, 'route_rule', None):
                 router_name = attr.route_rule[0]
-                if router_name == "commands":
-                    cmd = attr.route_rule[1]
+                rule = attr.route_rule[1]
 
-                    LOG.info('Route: %s.%s listens to %s for command %s',
-                             plugin.slug, key, router_name, cmd)
+                LOG.info('Route: %s.%s listens to %s for rule %s',
+                         plugin.slug, key, router_name, rule)
 
-                    self.routers["commands"].plugins.setdefault(
-                        plugin.slug, []).append((cmd, attr, plugin))
-
-                elif router_name == "regex_commands":
-                    cmd = attr.route_rule[1]
-                    rule = attr.route_rule[2]
-
-                    LOG.info('Route: %s.%s listens to %s for command %s and rule %s',
-                             plugin.slug, key, router_name, cmd, rule)
-
-                    self.routers["regex_commands"].plugins.setdefault(
-                        plugin.slug, []).append((cmd, rule, attr, plugin))
-
-                else:
-                    rule = attr.route_rule[1]
-
-                    LOG.info('Route: %s.%s listens to %s for matches to %s',
-                             plugin.slug, key, router_name, rule)
-                    self.routers[router_name].plugins.setdefault(
-                        plugin.slug, []).append((rule, attr, plugin))
+                self.routers[router_name].plugins.setdefault(
+                    plugin.slug, []).append((rule, attr, plugin))
 
     def listen(self):
         """Listens for incoming messages on the Redis queue"""
@@ -325,8 +306,9 @@ class PluginRunner(object):
         # get the active routes for this channel
         active_slugs = line._active_plugin_slugs.intersection(router.plugins.viewkeys())
         for plugin_slug in active_slugs:
-            if router.name == "commands":
-                for cmd, func, plugin in router.plugins[plugin_slug]:
+            for rule, func, plugin in router.plugins[plugin_slug]:
+                if router.name == "commands":
+                    cmd = rule
                     args = line.text.split()
                     if args[0] == self.command_prefix + cmd:
                         LOG.info('Command: %s.%s', plugin_slug, func.__name__)
@@ -336,21 +318,22 @@ class PluginRunner(object):
                           line, plugin, plugin_slug, func, arg_dict
                         )
 
-            elif router.name == "regex_commands":
-                for cmd, rule, func, plugin in router.plugins[plugin_slug]:
+                elif router.name == "regex_commands":
+                    cmd = rule[0]
+                    regex = rule[1]
                     args = line.text.split()
                     if args[0] == self.command_prefix + cmd:
                         linetext = " ".join(args[1:])
-                        match = re.match(rule, linetext, re.IGNORECASE)
+                        match = re.match(regex, linetext, re.IGNORECASE)
                         if match:
                             LOG.info('Command+Match: %s.%s', plugin_slug, func.__name__)
                             self.run_plugin(
                               line, plugin, plugin_slug, func, match.groupdict()
                             )
 
-            else:
-                for rule, func, plugin in router.plugins[plugin_slug]:
-                    match = re.match(rule, line.text, re.IGNORECASE)
+                else:
+                    regex = rule
+                    match = re.match(regex, line.text, re.IGNORECASE)
                     if match:
                         LOG.info('Match: %s.%s', plugin_slug, func.__name__)
                         self.run_plugin(
