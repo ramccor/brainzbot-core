@@ -23,9 +23,6 @@ class Plugin(BasePlugin):
     @listens_to_command("m")
     def motivate(self, line, args):
         # args[1] will not exist if the user only typed "!m"
-        try:
-            nick = args[0]
-            return u"You're doing good work, {}!".format(nick)
-        # We expect an IndexError, everything else is actually bad
-        except IndexError:
-            pass
+        if len(args) > 0:
+            worker = " ".join(args)
+            return u"You're doing good work, {}!".format(worker)
