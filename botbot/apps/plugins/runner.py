@@ -204,14 +204,15 @@ class PluginRunner(object):
                 continue
             if (not key.startswith('__') and
                     getattr(attr, 'route_rule', None)):
-                if attr.route_rule[0] == "commands":
+                router = attr.route_rule[0]
+                if router == "commands":
                     LOG.info('Route: %s.%s listens to %s for command %s',
                              plugin.slug, key, attr.route_rule[0],
                              attr.route_rule[1])
                     self.routers["commands"].plugins.setdefault(
                         plugin.slug, []).append((attr.route_rule[1], attr, plugin))
 
-                elif attr.route_rule[0] == "regex_commands":
+                elif router == "regex_commands":
                     LOG.info('Route: %s.%s listens to %s for command %s',
                              plugin.slug, key, attr.route_rule[0],
                              attr.route_rule[1])
@@ -320,20 +321,20 @@ class PluginRunner(object):
         for plugin_slug in active_slugs:
             if router.name == "commands":
                 for cmd, func, plugin in router.plugins[plugin_slug]:
-                    args = line.text.split(" ")
+                    args = line.text.split()
                     if args[0] == self.command_prefix + cmd:
-                        del args[0]
                         LOG.info('Command: %s.%s', plugin_slug, func.__name__)
-                        arg_dict = {"args": args}
+                        # We need a dict as run_plugin will unpack it
+                        arg_dict = {"args": args[1:]}
                         self.run_plugin(
                           line, plugin, plugin_slug, func, arg_dict
                         )
 
             elif router.name == "regex_commands":
                 for cmd, rule, func, plugin in router.plugins[plugin_slug]:
-                    args = line.text.split(" ")
+                    args = line.text.split()
                     if args[0] == self.command_prefix + cmd:
-                        linetext = line.text[len(self.command_prefix)+len(cmd)+1:]
+                        linetext = " ".join(args[1:])
                         match = re.match(rule, linetext, re.IGNORECASE)
                         if match:
                             LOG.info('Command+Match: %s.%s', plugin_slug, func.__name__)
