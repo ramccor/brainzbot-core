@@ -59,17 +59,17 @@ class Plugin(BasePlugin):
                         if not self._issue_on_cooldown(name):
                             # Only post URL if issue isn't already mentioned as part of one
                             if re.search(ur'(http)(\S*)/({})\b'.format(name), line.text):
-                                reply.append("{}: {}".format(name, desc))
+                                reply.append(u"{}: {}".format(name, desc))
                             else:
                                 return_url = urljoin(self.config['jira_url'], "browse/{}".format(name))
-                                reply.append("{}: {} {}".format(name, desc, return_url))
+                                reply.append(u"{}: {} {}".format(name, desc, return_url))
 
             # Only respond if any valid issues were found
             if len(reply) > 0:
                 if line.text.lower().startswith("[off]"):
-                    return "[off] {}".format("\n[off] ".join(reply))
+                    return u"[off] {}".format("\n[off] ".join(reply))
                 else:
-                    return "\n".join(reply)
+                    return u"\n".join(reply)
 
     @listens_to_mentions(ur'(.*)\bUPDATE:JIRA')
     def update_projects(self, line):
