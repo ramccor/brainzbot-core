@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import pytest
 import json
 import time
@@ -27,6 +30,8 @@ def patched_get(*args, **kwargs):
         return FakeUserResponse("TEST-123", "Testing JIRA plugin")
     elif args[0] == "https://tickets.test.org/rest/api/2/issue/TEST-234":
         return FakeUserResponse("TEST-234", "Something is being tested again")
+    elif args[0] == "https://tickets.test.org/rest/api/2/issue/TEST-453":
+        return FakeUserResponse("TEST-453", u"Test unicode: äñĳƺɷϠӃ۳ױ")
     else:
         return FakeUserResponse("TEST-000", "Default Test")
 
@@ -90,9 +95,7 @@ def test_jira(app):
         assert responses == []
         clear_recent_issues(app)
 
-
 def test_jira_multiple(app):
-
     # Test multiple issues in a single message
     with patch.object(requests, 'get') as mock_get:
         clear_recent_issues(app)
@@ -106,7 +109,6 @@ def test_jira_multiple(app):
 
 
 def test_jira_cooldown(app):
-
     # Test issue cooldown function
     with patch.object(requests, 'get') as mock_get:
         mock_get.side_effect = patched_get
@@ -114,4 +116,14 @@ def test_jira_cooldown(app):
         assert app.respond("Okay, I will work on TEST-123") == []
         time.sleep(3)
         assert app.respond("TEST-123 is done") == ["TEST-123: Testing JIRA plugin https://tickets.test.org/browse/TEST-123"]
+        clear_recent_issues(app)
+
+def test_jira_unicode(app):
+    # Test unicode compability
+    with patch.object(requests, 'get') as mock_get:
+        mock_get.side_effect = patched_get
+        responses = app.respond(u"Does this wörk with uñicode? TEST-453")
+        mock_get.assert_called_with(
+            'https://tickets.test.org/rest/api/2/issue/TEST-453')
+        assert responses == [u"TEST-453: Test unicode: äñĳƺɷϠӃ۳ױ https://tickets.test.org/browse/TEST-453"]
         clear_recent_issues(app)
