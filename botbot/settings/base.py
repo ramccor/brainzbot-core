@@ -273,6 +273,8 @@ if EXCLUDE_NICKS == ['']:
 REDIS_PLUGIN_QUEUE_URL = os.environ.get('REDIS_PLUGIN_QUEUE_URL')
 REDIS_PLUGIN_STORAGE_URL = os.environ.get('REDIS_PLUGIN_STORAGE_URL')
 
+COMMAND_PREFIX = os.environ.get('COMMAND_PREFIX')
+
 PUSH_STREAM_URL = os.environ.get('PUSH_STREAM_URL', None)
 
 # ==============================================================================

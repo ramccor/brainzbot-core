@@ -22,6 +22,14 @@ CACHE_TIMEOUT_2H = 7200
 LOG = logging.getLogger('botbot.plugin_runner')
 
 
+class Router(object):
+    """
+    Custom Router object
+    """
+    def __init__(self, name):
+        self.name = name
+        self.plugins = {}
+
 class Line(object):
     """
     All the methods and data necessary for a plugin to act on a line
@@ -156,12 +164,21 @@ class PluginRunner(object):
             settings.REDIS_PLUGIN_QUEUE_URL)
         self.storage = redis.StrictRedis.from_url(
             settings.REDIS_PLUGIN_STORAGE_URL)
-        # plugins that listen to everything coming over the wire
-        self.firehose_router = {}
-        # plugins that listen to all messages (aka PRIVMSG)
-        self.messages_router = {}
-        # plugins that listen on direct messages (starting with bot nick)
-        self.mentions_router = {}
+
+        self.command_prefix = settings.COMMAND_PREFIX
+
+        self.routers = {
+            # plugins that listen to everything coming over the wire
+            "firehose": Router("firehose"),
+            # plugins that listen to all messages (aka PRIVMSG)
+            "messages": Router("messages"),
+            # plugins that listen on direct messages (starting with bot nick)
+            "mentions": Router("mentions"),
+            # plugins that only listen to certain commands
+            "commands": Router("commands"),
+            # plugins that only listen to certain commands with args parsed by regex
+            "regex_commands": Router("regex_commands")
+        }
 
     def register_all_plugins(self):
         """Iterate over all plugins and register them with the app"""
@@ -185,13 +202,16 @@ class PluginRunner(object):
                 attr = getattr(plugin, key)
             except AttributeError:
                 continue
-            if (not key.startswith('__') and
-                    getattr(attr, 'route_rule', None)):
-                LOG.info('Route: %s.%s listens to %s for matches to %s',
-                         plugin.slug, key, attr.route_rule[0],
-                         attr.route_rule[1])
-                getattr(self, attr.route_rule[0] + '_router').setdefault(
-                    plugin.slug, []).append((attr.route_rule[1], attr, plugin))
+
+            if not key.startswith('__') and getattr(attr, 'route_rule', None):
+                router_name = attr.route_rule[0]
+                rule = attr.route_rule[1]
+
+                LOG.info('Route: %s.%s listens to %s for rule %s',
+                         plugin.slug, key, router_name, rule)
+
+                self.routers[router_name].plugins.setdefault(
+                    plugin.slug, []).append((rule, attr, plugin))
 
     def listen(self):
         """Listens for incoming messages on the Redis queue"""
@@ -206,7 +226,7 @@ class PluginRunner(object):
 
                 if val:
                     _, val = val
-                    LOG.debug('Recieved: %s', val)
+                    LOG.debug('Received: %s', val)
                     line = Line(json.loads(val), self)
 
                     # Calculate the transport latency between go and the plugins.
@@ -226,9 +246,9 @@ class PluginRunner(object):
         # This is a pared down version of the `check_for_plugin_route_matches`
         # method for firehose plugins (no regexing or return values)
         active_firehose_plugins = line._active_plugin_slugs.intersection(
-            self.firehose_router.viewkeys())
+            self.routers["firehose"].plugins.viewkeys())
         for plugin_slug in active_firehose_plugins:
-            for _, func, plugin in self.firehose_router[plugin_slug]:
+            for _, func, plugin in self.routers["firehose"].plugins[plugin_slug]:
                 # firehose gets everything, no rule matching
                 LOG.info('Match: %s.%s', plugin_slug, func.__name__)
                 with statsd.timer(".".join(["plugins", plugin_slug])):
@@ -245,10 +265,14 @@ class PluginRunner(object):
 
         # pass line to other routers
         if line._is_message:
-            self.check_for_plugin_route_matches(line, self.messages_router)
+            self.check_for_plugin_route_matches(line, self.routers["messages"])
 
             if line.is_direct_message:
-                self.check_for_plugin_route_matches(line, self.mentions_router)
+                self.check_for_plugin_route_matches(line, self.routers["mentions"])
+
+            if line.text.startswith(self.command_prefix):
+                self.check_for_plugin_route_matches(line, self.routers["commands"])
+                self.check_for_plugin_route_matches(line, self.routers["regex_commands"])
 
     def setup_plugin_for_channel(self, fake_plugin_class, line):
         """Given a dummy plugin class, initialize it for the line's channel"""
@@ -260,32 +284,61 @@ class PluginRunner(object):
                             app=self)
         return plugin
 
+    def run_plugin(self, line, plugin, plugin_slug, func, arg_dict):
+        with statsd.timer(".".join(["plugins", plugin_slug])):
+            # FIXME: This will not have correct timing if go back to
+            # gevent.
+            # Instantiate a plugin specific to this channel
+            channel_plugin = self.setup_plugin_for_channel(plugin.__class__, line)
+            # get the method from the channel-specific plugin
+            new_func = log_on_error(LOG, getattr(channel_plugin, func.__name__))
+
+            if hasattr(self, 'gevent'):
+                grnlt = self.gevent.Greenlet(new_func, line, **arg_dict)
+                grnlt.link_value(channel_plugin.greenlet_respond)
+                grnlt.start()
+            else:
+                channel_plugin.respond(new_func(line, **arg_dict))
+
+
     def check_for_plugin_route_matches(self, line, router):
         """Checks the active plugins' routes and calls functions on matches"""
         # get the active routes for this channel
-        active_slugs = line._active_plugin_slugs.intersection(router.viewkeys())
+        active_slugs = line._active_plugin_slugs.intersection(router.plugins.viewkeys())
         for plugin_slug in active_slugs:
-            for rule, func, plugin in router[plugin_slug]:
-                match = re.match(rule, line.text, re.IGNORECASE)
-                if match:
-                    LOG.info('Match: %s.%s', plugin_slug, func.__name__)
-                    with statsd.timer(".".join(["plugins", plugin_slug])):
-                        # FIXME: This will not have correct timing if go back to
-                        # gevent.
-                        # Instantiate a plugin specific to this channel
-                        channel_plugin = self.setup_plugin_for_channel(
-                            plugin.__class__, line)
-                        # get the method from the channel-specific plugin
-                        new_func = log_on_error(LOG, getattr(channel_plugin,
-                                                             func.__name__))
-                        if hasattr(self, 'gevent'):
-                            grnlt = self.gevent.Greenlet(new_func, line,
-                                                         **match.groupdict())
-                            grnlt.link_value(channel_plugin.greenlet_respond)
-                            grnlt.start()
-                        else:
-                            channel_plugin.respond(new_func(line,
-                                                            **match.groupdict()))
+            for rule, func, plugin in router.plugins[plugin_slug]:
+                if router.name == "commands":
+                    cmd = rule
+                    args = line.text.split()
+                    if args[0] == self.command_prefix + cmd:
+                        LOG.info('Command: %s.%s', plugin_slug, func.__name__)
+                        # We need a dict as run_plugin will unpack it
+                        arg_dict = {"args": args[1:]}
+                        self.run_plugin(
+                          line, plugin, plugin_slug, func, arg_dict
+                        )
+
+                elif router.name == "regex_commands":
+                    cmd = rule[0]
+                    regex = rule[1]
+                    args = line.text.split()
+                    if args[0] == self.command_prefix + cmd:
+                        linetext = " ".join(args[1:])
+                        match = re.match(regex, linetext, re.IGNORECASE)
+                        if match:
+                            LOG.info('Command+Match: %s.%s', plugin_slug, func.__name__)
+                            self.run_plugin(
+                              line, plugin, plugin_slug, func, match.groupdict()
+                            )
+
+                else:
+                    regex = rule
+                    match = re.match(regex, line.text, re.IGNORECASE)
+                    if match:
+                        LOG.info('Match: %s.%s', plugin_slug, func.__name__)
+                        self.run_plugin(
+                            line, plugin, plugin_slug, func, match.groupdict()
+                        )
 
 
 def start_plugins(*args, **kwargs):
