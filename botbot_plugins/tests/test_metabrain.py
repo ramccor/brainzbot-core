@@ -44,3 +44,16 @@ def test_remember(app):
     responses = app.respond("!braindump")
     assert responses == ["I have no memory yet, use the recall command to make me remember stuff for you."]
 
+
+def test_whitespace(app):
+    responses = app.respond("!remember a=b")
+    assert responses == ["I will remember \"a\" for you repl_user."]
+
+    responses = app.respond("!remember a =b")
+    assert responses == ["I will remember \"a\" for you repl_user."]
+
+    responses = app.respond("!remember a tree        =       two cakes")
+    assert responses == ["I will remember \"a tree\" for you repl_user."]
+
+    responses = app.respond("!recall a tree")
+    assert responses == ["two cakes"]

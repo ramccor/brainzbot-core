@@ -32,7 +32,7 @@ class Plugin(BasePlugin):
         {{ command_prefix }}braindump
     """
 
-    @listens_to_regex_command("remember", ur"(?P<key>.+?)=\s*(?P<value>.*)")
+    @listens_to_regex_command("remember", ur"(?P<key>.+?)\s*=\s*(?P<value>.*)")
     def remember(self, line, key, value):
         try:
             memory = json.loads(self.retrieve("memory"))
