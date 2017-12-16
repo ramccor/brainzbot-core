@@ -40,11 +40,11 @@ clean-pyc:
 
 ### GO SUPPORT
 
-$(LOCAL_BIN)/botbot-bot:
-	GOPATH=$(VIRTUAL_ENV) go get github.com/BotBotMe/botbot-bot
+$(LOCAL_BIN)/brainzbot-bot:
+	GOPATH=$(VIRTUAL_ENV) go get github.com/metabrainz/brainzbot-bot
 
 test-bot:
-	GOPATH=$(VIRTUAL_ENV) go test github.com/BotBotMe/botbot-bot
+	GOPATH=$(VIRTUAL_ENV) go test github.com/metabrainz/brainzbot-bot
 
 ### LOCAL LESS SUPPORT
 $(NPM_BIN):
@@ -89,7 +89,7 @@ jshint:
 local-settings: .env
 
 ### General Tasks
-dependencies: less-install pip-install local-settings $(LOCAL_BIN)/botbot-bot
+dependencies: less-install pip-install local-settings $(LOCAL_BIN)/brainzbot-bot
 
 $(LOCAL_VAR)/GeoLite2-City.mmdb:
 	curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz | gunzip -c > $@
