@@ -43,23 +43,23 @@ Run in a terminal:
 
 .. code-block:: bash
 
-    virtualenv botbot && source botbot/bin/activate
-    pip install -e git+https://github.com/BotBotMe/botbot-web.git#egg=botbot
-    cd $VIRTUAL_ENV/src/botbot
+    virtualenv brainzbot && source brainzbot/bin/activate
+    pip install -e git+https://github.com/metabrainz/brainzbot-core.git#egg=brainzbot-core
+    cd $VIRTUAL_ENV/src/brainzbot-core
 
     # This builds the project environment and will run for at least several minutes
     make dependencies
 
     # Adjust ``.env`` file if necessary. Defaults are chosen for local debug environments.
     # If your Postgres server requires a password, you'll need to override STORAGE_URL
-    # The default database name is 'botbot'
+    # The default database name is 'brainzbot'
     $EDITOR .env
 
     # Make the variables available to subprocesses
     export $(cat .env | grep -v ^# | xargs)
 
-    createdb botbot
-    echo "create extension hstore" | psql botbot
+    createdb brainzbot
+    echo "create extension hstore" | psql brainzbot
     manage.py migrate
 
     # You'll need a staff account for creating a bot and registering channels

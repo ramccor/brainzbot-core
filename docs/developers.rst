@@ -1,5 +1,5 @@
 **********************
-Developing with BotBot
+Developing with BrainzBot
 **********************
 
 Architecture
@@ -7,9 +7,9 @@ Architecture
 
 Several loosely coupled pieces make up the whole of BotBot:
 
-1. **botbot-bot:** An IRC client capable of connecting to multiple IRC networks, and connecting multiple channels and nicks per network. (Go)
-2. **botbot-plugins:** A plugin framework - plugins receive messages from IRC channels and can respond within the channel. (Python)
-3. **botbot-web:** A web site for managing bots/channels as well as a beautiful public interface for channel logs. (Python/Django)
+1. **brainzbot-bot:** An IRC client capable of connecting to multiple IRC networks, and connecting multiple channels and nicks per network. (Go)
+2. **brainzbot-plugins:** A plugin framework - plugins receive messages from IRC channels and can respond within the channel. (Python)
+3. **brainzbot-core:** A web site for managing bots/channels as well as a beautiful public interface for channel logs. (Python/Django)
 4. **nginx + push-stream-module:** An SSE provider that the web site can connect to for real-time logs.
 
 .. image:: /images/botbot-architecture.png
@@ -44,7 +44,7 @@ When working on code changes or debugging, it is often desirable to manage one o
 
 If you'd like to make use of the ``.env`` file, you can still start services individually using Honcho::
 
-    honcho start web  # Starts Django site
+    honcho start core  # Starts Django site
     honcho start bot  # Starts IRC client
     honcho start plugins  # Starts plugin runner
 
@@ -62,7 +62,7 @@ Then you could invoke commands and individual services like::
 If you've explicitly set the environment through your own methods, services can be invoked like usual::
 
     manage.py runserver
-    botbot-bot
+    brainzbot-bot
     botbot-eventsource
     manage.py run_plugins
 

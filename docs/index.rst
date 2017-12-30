@@ -1,4 +1,4 @@
-Welcome to BotBot's documentation!
+Welcome to BrainzBot's documentation!
 =====================================
 
 Contents:

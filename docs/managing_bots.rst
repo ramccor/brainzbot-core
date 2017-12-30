@@ -17,7 +17,7 @@ Public
     Logs for public channels will be available on a public URL like *http://example.com/freenode/django*
 
 Featured
-    Featured channels are public channels. Used by `botbot.me <https://botbot.me>`_ for highlighting some public channels. May be deprecated in the future.
+    Featured channels are public channels. Used by `chatlogs.metabrainz.org <https://chatlogs.metabrainz.org/>`_ for highlighting some public channels. May be deprecated in the future.
 
 Private
     Logs for private channels are only availale to authenticated users of the site. They will have URLs that are not easy to guess.
