@@ -7,7 +7,7 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 "`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-' 
 ```
 
-[![Build Status](https://api.travis-ci.org/metabrainz/brainzbot-core.png)](https://travis-ci.org/Metabrainz/brainzbot-core)
+[![Build Status](https://api.travis-ci.org/metabrainz/brainzbot-core.png)](https://travis-ci.org/metabrainz/brainzbot-core)
 [![Read the Docs](https://img.shields.io/readthedocs/pip.svg)](https://brainzbot.readthedocs.io/)
 
 Botbot is collection of tools for running IRC bots. It has primarily been
