@@ -176,9 +176,9 @@ class DummyApp(Cmd):
                 if router_name in [r.name for _, r in self.routers.iteritems()]:
                     rule = attr.route_rule[1]
 
-                    self.output('Route {}: {} ({}, {})'.format(router_name,
-                                                               plugin.slug, key,
-                                                               rule))
+                    self.output(u'Route {}: {} ({}, {})'.format(router_name,
+                                                                plugin.slug, key,
+                                                                rule))
                     self.routers[router_name].plugins.setdefault(
                         plugin.slug, []).append((rule, attr))
                     # Setup the plugin config
