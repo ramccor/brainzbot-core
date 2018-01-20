@@ -28,4 +28,4 @@ py.test botbot_plugins
 
 ## Contribute!
 
-We want you to contribute your own plugins to make BotBot.me better. Please [read the docs](https://github.com/metabrainz/botbot-plugins/blob/master/DOCS.md) and review our [contributing guidelines](https://github.com/metabrainz/botbot-plugins/blob/master/CONTRIBUTING.md) prior to getting started to ensure your plugin is accepted.
+We want you to contribute your own plugins to make BotBot.me better. Please [read the plugin docs](https://brainzbot.readthedocs.io/en/latest/plugins.html) and review our [contributing guidelines](https://github.com/metabrainz/botbot-plugins/blob/master/CONTRIBUTING.md) prior to getting started to ensure your plugin is accepted.
