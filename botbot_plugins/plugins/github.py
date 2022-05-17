@@ -49,7 +49,7 @@ class Plugin(BasePlugin):
         self.store(abbreviation, repo)
         return "Successfully stored the repo {} as {} for Github lookups".format(repo, abbreviation)
 
-    @listens_to_all(ur'(?:.*)\b(?P<repo_abbreviation>[\w\-\_]+)#?(?P<pulls>\d+(?:,\d+)*)\b(?:.*)')
+    @listens_to_all(ur'(?:.*)\b(?P<repo_abbreviation>[\w\-\_]+)#(?P<pulls>\d+(?:,\d+)*)\b(?:.*)')
     def issue_lookup(self, line, repo_abbreviation, pulls):
         """Lookup an specified repo pulls"""
         # pulls can be a list of pulls separated by a comma
