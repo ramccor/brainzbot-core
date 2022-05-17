@@ -31,11 +31,11 @@ class Plugin(BasePlugin):
 
     To retrieve a PR simply use:
 
-    GH:<abbreviation>#<PR_number>
+    <abbreviation>#<PR_number>  —  For example:  MB#1234
     
     For multiple pull requests, use:
     
-    GH:<abbreviation>#<PR_number_1>,<PR_number_2>,<PR_number_3>
+    <abbreviation>#<PR_number_1>,<PR_number_2>,<PR_number_3>  —  For example:  MB#1234,5678,91011
 
     Note: The lookup is limited to 5 issues.
     """
@@ -48,7 +48,7 @@ class Plugin(BasePlugin):
         self.store(abbreviation, repo)
         return "Successfully stored the repo {} as {} for Github lookups".format(repo, abbreviation)
 
-    @listens_to_all(ur'\b(?P<repo_abbreviation>[\w\-\_]+)#?(?P<pulls>\d+(?:,\d+)*)\b')
+    @listens_to_all(ur'(?:.*)\b(?P<repo_abbreviation>[\w\-\_]+)#?(?P<pulls>\d+(?:,\d+)*)\b(?:.*)')
     def issue_lookup(self, line, repo_abbreviation, pulls):
         """Lookup an specified repo pulls"""
         # pulls can be a list of pulls separated by a comma
