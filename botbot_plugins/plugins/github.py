@@ -42,6 +42,19 @@ class Plugin(BasePlugin):
     """
     url = "https://api.github.com/repos"
     config_class = Config
+    
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
+        # Set up initial project abbreviations to avoid doing it manually on each restart
+        # These can be overwritten as described in store_abbreviation
+        self.store("MBS", "musicbrainz-server")
+        self.store("LB", "listenbrainz-server")
+        self.store("PICARD", "picard")
+        self.store("AB", "acousticbrainz-server")
+        self.store("BB", "bookbrainz-site")
+        self.store("CB", "critiquebrainz")
+        self.store("MEB", "metabrainz.org")
+        self.store("BU", "brainzutils-python")
 
     @listens_to_mentions(ur'(?:.*)\b(?:GH|gh):(?P<abbreviation>[\w\-\_]+)=(?P<repo>[\w\-\_]+)')
     def store_abbreviation(self, line, abbreviation, repo):
