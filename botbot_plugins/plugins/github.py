@@ -22,13 +22,20 @@ class Plugin(BasePlugin):
 
     Looking for the url of an pull or a list of pulls:
 
-    To store an abbreviation for a repo use
+    To store an abbreviation for a repo use:
 
-    @gh:abbreviation=repo_name
+    BrainzBot: GH:<abbreviation>=<repo_name>
+    
+    This assumes the IRC bot is named BrainzBot.
+    The 'metabrainz/' organization name is hardcoded, you only need the repo name itself.
 
     To retrieve a PR simply use:
 
-    gh:abbreviation#PR_number
+    GH:<abbreviation>#<PR_number>
+    
+    For multiple pull requests, use:
+    
+    GH:<abbreviation>#<PR_number_1>,<PR_number_2>,<PR_number_3>
 
     Note: The lookup is limited to 5 issues.
     """
