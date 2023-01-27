@@ -1,4 +1,4 @@
-FROM metabrainz/python:2.7-20220421
+FROM metabrainz/python:2.7-20220421 as brainzbot-base
 
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -25,3 +25,23 @@ COPY . /srv/botbot-web
 
 CMD manage.py runserver 0.0.0.0:8080 --settings=botbot.settings
 
+
+FROM brainzbot-base as brainzbot-prod
+
+# runit service files
+# All services are created with a `down` file, preventing them from starting
+# rc.local removes the down file for the specific service we want to run in a container
+# http://smarden.org/runit/runsv.8.html
+
+# uwsgi (website)
+COPY ./docker/services/uwsgi/uwsgi.ini /etc/uwsgi/uwsgi.ini
+COPY ./docker/services/uwsgi/consul-template-uwsgi.conf /etc/consul-template-uwsgi.conf
+COPY ./docker/services/uwsgi/uwsgi.service /etc/service/uwsgi/run
+RUN touch /etc/service/uwsgi/down
+
+# plugins
+COPY ./docker/services/plugins/consul-template-plugins.conf /etc/consul-template-plugins.conf
+COPY ./docker/services/plugins/plugins.service /etc/service/plugins/run
+RUN touch /etc/service/plugins/down
+
+COPY ./docker/rc.local /etc/rc.local
