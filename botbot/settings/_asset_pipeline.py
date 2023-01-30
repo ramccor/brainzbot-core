@@ -1,6 +1,3 @@
-PIPELINE_CSS_COMPRESSOR = ''
-PIPELINE_JS_COMPRESSOR = ''
-
 PIPELINE_CSS = {
     'screen': {
         'source_filenames': ('css/screen.css',),
@@ -46,4 +43,11 @@ PIPELINE_JS = {
         ),
         'output_filename': 'channel.js',
     },
+}
+
+PIPELINE = {
+    'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
+    'JS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
+    'STYLESHEETS': PIPELINE_CSS,
+    'JAVASCRIPT': PIPELINE_JS,
 }

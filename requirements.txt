@@ -1,8 +1,8 @@
-django==1.8.4
+django==1.11.29
 
 pytz
 Jinja2==2.7.3
-django-jinja==1.4.1
+django-jinja==2.6.0
 psycopg2==2.7.3.2
 dj-database-url==0.2.2
 # TODO (yml): Remove hstore when we squash the migration
@@ -10,16 +10,16 @@ django-hstore==1.2.5
 
 markdown==2.3.1
 redis==2.9.1
-django-pipeline==1.5.1
+django-pipeline==1.7.0
 honcho==0.5.0
 
-djorm-ext-pgfulltext==0.9.0
-djorm-ext-pgarray==0.9.0
+djorm-ext-pgfulltext==0.10
+djorm-pgarray==1.2
 
-django-allauth==0.20.0
-    requests==2.7.0
-    oauthlib==0.7.2
-    requests-oauthlib==0.5.0
+django-allauth==0.40.0
+    requests==2.23.0
+    oauthlib==3.1.0
+    requests-oauthlib==1.3.0
 django-bootstrap-toolkit==2.15.0
 
 geoip2==2.1.0
@@ -30,3 +30,6 @@ geoip2==2.1.0
 # For plugins
 -e git+https://github.com/metabrainz/brainzbot-plugins.git#egg=brainzbot-plugins
 
+# For production
+uwsgi==2.0.21
+whitenoise==4.1.4

@@ -37,3 +37,4 @@ ALLOWED_HOSTS=chatlogs.metabrainz.org,test-chatlogs.metabrainz.org
 PYTHONIOENCODING=utf8
 LANG=en_US.UTF-8
 DEBUG=False
+VAR_ROOT=/data

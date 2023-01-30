@@ -1,15 +1,16 @@
 """Near duplicate of Django's `urlizetrunc` with support for image classes"""
 import urlparse
 
-from django.template.base import Library, Node
+from django.template.base import Node
+from django.template.library import Library
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe, SafeData
 from django.utils.encoding import force_text
 from django.utils.functional import allow_lazy
 from django.utils import six
-from django.utils.html import (TRAILING_PUNCTUATION, WRAPPING_PUNCTUATION,
+from django.utils.html import (TRAILING_PUNCTUATION_CHARS, WRAPPING_PUNCTUATION,
                                word_split_re, simple_url_re, smart_urlquote,
-                               simple_url_2_re, simple_email_re, escape)
+                               simple_url_2_re, escape)
 import re
 
 
@@ -18,6 +19,8 @@ register = Library()
 image_file_types = [".png", ".jpg", ".jpeg", ".gif"]
 IMAGE = 1
 YOUTUBE = 2
+
+email_re = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 
 @register.filter(is_safe=True, needs_autoescape=True)
@@ -176,7 +179,7 @@ def urlize_impl(text, trim_url_limit=None, nofollow=False, autoescape=False):
             if '.' in word or '@' in word or ':' in word:
                 # Deal with punctuation.
                 lead, middle, trail = '', word, ''
-                for punctuation in TRAILING_PUNCTUATION:
+                for punctuation in TRAILING_PUNCTUATION_CHARS:
                     if middle.endswith(punctuation):
                         middle = middle[:-len(punctuation)]
                         trail = punctuation + trail

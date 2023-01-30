@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     'botbot.core',
 
     'pipeline',
+    'whitenoise.runserver_nostatic',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -167,6 +168,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'botbot.core.middleware.TimezoneMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 #==============================================================================
@@ -199,7 +201,7 @@ LOGGING = {
     'handlers': {
         'null': {
             'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
+            'class': 'logging.NullHandler',
         },
         'console': {
             'level': 'DEBUG',
