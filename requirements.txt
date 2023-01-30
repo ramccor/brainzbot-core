@@ -9,12 +9,11 @@ dj-database-url==0.2.2
 django-hstore==1.2.5
 # django-statsd-mozilla==0.3.12
 git+https://github.com/vbabiy/django-statsd.git@request-aggregation
+statsd==2.1.2
 
 markdown==2.3.1
 redis==2.9.1
 django-pipeline==1.5.1
-    # Requires java runtime
-    yuicompressor==2.4.8
 honcho==0.5.0
 
 djorm-ext-pgfulltext==0.9.0

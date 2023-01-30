@@ -1,5 +1,5 @@
-PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.yui.YUICompressor'
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.yui.YUICompressor'
+PIPELINE_CSS_COMPRESSOR = ''
+PIPELINE_JS_COMPRESSOR = ''
 
 PIPELINE_CSS = {
     'screen': {
