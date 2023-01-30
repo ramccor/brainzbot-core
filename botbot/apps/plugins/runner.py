@@ -11,7 +11,6 @@ from botbot_plugins.base import PrivateMessage
 from django.core.cache import cache
 from django.conf import settings
 from django.utils.importlib import import_module
-from django_statsd.clients import statsd
 
 from botbot.apps.bots import models as bots_models
 from botbot.apps.plugins.utils import convert_nano_timestamp, log_on_error
@@ -222,17 +221,11 @@ class PluginRunner(object):
 
                 # Track q length
                 ql = self.bot_bus.llen('q')
-                statsd.gauge(".".join(["plugins", "q"]), ql)
 
                 if val:
                     _, val = val
                     LOG.debug('Received: %s', val)
                     line = Line(json.loads(val), self)
-
-                    # Calculate the transport latency between go and the plugins.
-                    delta = datetime.utcnow().replace(tzinfo=utc) - line._received
-                    statsd.timing(".".join(["plugins", "latency"]),
-                                 delta.total_seconds() * 1000)
 
                     if line.is_valid():
                         self.dispatch(line)
@@ -251,17 +244,14 @@ class PluginRunner(object):
             for _, func, plugin in self.routers["firehose"].plugins[plugin_slug]:
                 # firehose gets everything, no rule matching
                 LOG.info('Match: %s.%s', plugin_slug, func.__name__)
-                with statsd.timer(".".join(["plugins", plugin_slug])):
-                    # FIXME: This will not have correct timing if go back to
-                    # gevent.
-                    channel_plugin = self.setup_plugin_for_channel(
-                        plugin.__class__, line)
-                    new_func = log_on_error(LOG, getattr(channel_plugin,
-                                                         func.__name__))
-                    if hasattr(self, 'gevent'):
-                        self.gevent.Greenlet.spawn(new_func, line)
-                    else:
-                        channel_plugin.respond(new_func(line))
+                channel_plugin = self.setup_plugin_for_channel(
+                    plugin.__class__, line)
+                new_func = log_on_error(LOG, getattr(channel_plugin,
+                                                     func.__name__))
+                if hasattr(self, 'gevent'):
+                    self.gevent.Greenlet.spawn(new_func, line)
+                else:
+                    channel_plugin.respond(new_func(line))
 
         # pass line to other routers
         if line._is_message:
@@ -285,20 +275,17 @@ class PluginRunner(object):
         return plugin
 
     def run_plugin(self, line, plugin, plugin_slug, func, arg_dict):
-        with statsd.timer(".".join(["plugins", plugin_slug])):
-            # FIXME: This will not have correct timing if go back to
-            # gevent.
-            # Instantiate a plugin specific to this channel
-            channel_plugin = self.setup_plugin_for_channel(plugin.__class__, line)
-            # get the method from the channel-specific plugin
-            new_func = log_on_error(LOG, getattr(channel_plugin, func.__name__))
+        # Instantiate a plugin specific to this channel
+        channel_plugin = self.setup_plugin_for_channel(plugin.__class__, line)
+        # get the method from the channel-specific plugin
+        new_func = log_on_error(LOG, getattr(channel_plugin, func.__name__))
 
-            if hasattr(self, 'gevent'):
-                grnlt = self.gevent.Greenlet(new_func, line, **arg_dict)
-                grnlt.link_value(channel_plugin.greenlet_respond)
-                grnlt.start()
-            else:
-                channel_plugin.respond(new_func(line, **arg_dict))
+        if hasattr(self, 'gevent'):
+            grnlt = self.gevent.Greenlet(new_func, line, **arg_dict)
+            grnlt.link_value(channel_plugin.greenlet_respond)
+            grnlt.start()
+        else:
+            channel_plugin.respond(new_func(line, **arg_dict))
 
 
     def check_for_plugin_route_matches(self, line, router):
