@@ -34,7 +34,6 @@ INSTALLED_APPS = (
     'botbot.apps.kudos',
     'botbot.core',
 
-    'launchpad',
     'pipeline',
 
     'django.contrib.auth',
