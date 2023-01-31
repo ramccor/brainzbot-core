@@ -23,9 +23,6 @@ django-bootstrap-toolkit==2.15.0
 
 geoip2==2.1.0
 
-# For plugins
--e git+https://github.com/metabrainz/brainzbot-plugins.git#egg=brainzbot-plugins
-
 # For production
 uwsgi==2.0.21
 whitenoise==4.1.4
