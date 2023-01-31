@@ -68,7 +68,7 @@ def parse_url(word):
         url = smart_urlquote(word)
     elif simple_url_2_re.match(word):
         url = smart_urlquote('http://%s' % word)
-    elif not ':' in word and simple_email_re.match(word):
+    elif not ':' in word and email_re.match(word):
         local, domain = word.rsplit('@', 1)
         try:
             domain = domain.encode('idna').decode('ascii')

@@ -161,6 +161,7 @@ TEMPLATES = [
 # Middleware
 #==============================================================================
 MIDDLEWARE_CLASSES = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 ] + MIDDLEWARE_CLASSES + [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -168,7 +169,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'botbot.core.middleware.TimezoneMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 #==============================================================================

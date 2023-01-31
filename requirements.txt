@@ -11,7 +11,6 @@ django-hstore==1.2.5
 markdown==2.3.1
 redis==2.9.1
 django-pipeline==1.7.0
-honcho==0.5.0
 
 djorm-ext-pgfulltext==0.10
 djorm-pgarray==1.2
@@ -23,9 +22,6 @@ django-allauth==0.40.0
 django-bootstrap-toolkit==2.15.0
 
 geoip2==2.1.0
-
-# Needs pinning
--e git+https://github.com/lincolnloop/django-jsonit.git#egg=jsonit
 
 # For plugins
 -e git+https://github.com/metabrainz/brainzbot-plugins.git#egg=brainzbot-plugins
