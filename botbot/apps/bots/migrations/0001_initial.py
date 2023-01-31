@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import djorm_pgarray.fields
+import django.contrib.postgres.fields
 
 
 class Migration(migrations.Migration):
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, help_text='', auto_created=True)),
                 ('dt', models.DateField(help_text='')),
-                ('counts', djorm_pgarray.fields.ArrayField(blank=True, null=True, default=None, help_text='')),
+                ('counts', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, size=None)),
                 ('channel', models.ForeignKey(help_text='', to='bots.Channel')),
             ],
             options={

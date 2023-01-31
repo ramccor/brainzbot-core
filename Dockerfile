@@ -23,8 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /srv/botbot-web
 
-CMD manage.py runserver 0.0.0.0:8080 --settings=botbot.settings
-
 
 FROM brainzbot-base as brainzbot-prod
 
@@ -45,3 +43,8 @@ COPY ./docker/services/plugins/plugins.service /etc/service/plugins/run
 RUN touch /etc/service/plugins/down
 
 COPY ./docker/rc.local /etc/rc.local
+
+
+FROM brainzbot-base as brainzbot-dev
+
+CMD manage.py runserver 0.0.0.0:8080 --settings=botbot.settings

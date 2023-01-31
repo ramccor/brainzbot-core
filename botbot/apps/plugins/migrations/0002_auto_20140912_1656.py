@@ -2,11 +2,11 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from django.db.models.loading import get_model
+from django.apps import apps
 
 
 def initial_plugins(*args):
-    Plugin = get_model('plugins', 'Plugin')
+    Plugin = apps.get_model('plugins', 'Plugin')
 
     intial = [
         {

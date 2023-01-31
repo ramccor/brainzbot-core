@@ -34,9 +34,8 @@ INSTALLED_APPS = (
     'botbot.apps.kudos',
     'botbot.core',
 
-    'launchpad',
     'pipeline',
-    'django_statsd',
+    'whitenoise.runserver_nostatic',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -161,17 +160,16 @@ TEMPLATES = [
 #==============================================================================
 # Middleware
 #==============================================================================
-MIDDLEWARE_CLASSES = (
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
+MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
-) + MIDDLEWARE_CLASSES + (
+] + MIDDLEWARE_CLASSES + [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'botbot.core.middleware.TimezoneMiddleware',
-)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+]
 
 #==============================================================================
 # Auth / security
@@ -203,7 +201,7 @@ LOGGING = {
     'handlers': {
         'null': {
             'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
+            'class': 'logging.NullHandler',
         },
         'console': {
             'level': 'DEBUG',
@@ -303,15 +301,5 @@ SOCIAL_AUTH_PIPELINE = (
 
 # Allauth
 ACCOUNT_LOGOUT_ON_GET = (True)
-
-# Statsd
-STATSD_CLIENT = 'django_statsd.clients.request_aggregate'
-
-STATSD_PATCHES = [
-    'django_statsd.patches.db',
-    'django_statsd.patches.cache',
-]
-
-STATSD_PREFIX = os.environ.get('STATSD_PREFIX', 'bbme')
 
 DJANGO_HSTORE_ADAPTER_REGISTRATION = 'connection'

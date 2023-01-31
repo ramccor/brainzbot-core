@@ -7,7 +7,7 @@ EMAIL_BACKEND={{template "KEY" "email_backend"}}
 WEB_SECRET_KEY={{template "KEY" "web_secret_key"}}
 {{if service "pgbouncer-master"}}
 {{with index (service "pgbouncer-master") 0}}
-STORAGE_URL="postgresql://postgres:{{template "KEY" "storage_password"}}@{{.Address}}:{{.Port}}/{{template "KEY" "storage_database"}}"
+STORAGE_URL="postgresql://{{template "KEY" "storage_user"}}@{{.Address}}:{{.Port}}/{{template "KEY" "storage_database"}}"
 {{end}}
 {{end}}
 
@@ -37,3 +37,4 @@ ALLOWED_HOSTS=chatlogs.metabrainz.org,test-chatlogs.metabrainz.org
 PYTHONIOENCODING=utf8
 LANG=en_US.UTF-8
 DEBUG=False
+VAR_ROOT=/data

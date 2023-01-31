@@ -2,14 +2,14 @@ import datetime
 import random
 import string
 import uuid
+from collections import OrderedDict
 
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Max, Min
 from django.db.models.aggregates import Count
-from django.utils.datastructures import SortedDict
 from django.utils.text import slugify
-from djorm_pgarray.fields import ArrayField
+from django.contrib.postgres.fields.array import ArrayField
 
 from botbot.apps.plugins import models as plugins_models
 from botbot.apps.plugins.models import Plugin, ActivePlugin
@@ -259,7 +259,7 @@ class Channel(TimeStampedModel):
 
     def get_months_active(self):
         """
-        Creates a SortedDict of the format:
+        Creates a OrderedDict of the format:
         {
             ...
             '2010': {
@@ -277,14 +277,14 @@ class Channel(TimeStampedModel):
                 last_log=Max("timestamp"),
                 first_log=Min("timestamp"))
             if not minmax_dict['first_log']:
-                return SortedDict()
+                return OrderedDict()
             # cache for 10 days
             cache.set(minmax_dict_key, minmax_dict, 864000)
         first_log = minmax_dict['first_log'].date()
         last_log = minmax_dict['last_log'].date()
         last_log = datetime.date(last_log.year, last_log.month, 1)
         current = datetime.date(first_log.year, first_log.month, 1)
-        months_active = SortedDict()
+        months_active = OrderedDict()
         while current <= last_log:
             months_active.setdefault(current.year, []).append(current)
             if current.month == 12:
@@ -337,7 +337,7 @@ class UserCount(models.Model):
 
     channel = models.ForeignKey(Channel)
     dt = models.DateField()
-    counts = ArrayField(dbtype="int")
+    counts = ArrayField(models.IntegerField(blank=True), blank=True)
 
     def __unicode__(self):
         return "{} on {}: {}".format(self.channel, self.dt, self.counts)
