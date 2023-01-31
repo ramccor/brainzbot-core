@@ -8,3 +8,5 @@ settings_debug.py
 node_modules/
 venv/
 .idea/
+__pycache__
+botbot_plugins.egg-info
