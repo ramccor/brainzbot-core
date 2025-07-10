@@ -14,7 +14,7 @@ from botbot.apps.logs import models as log_models
 from .management.commands import redact as redact_cmd
 from botbot.apps.bots.models import ChatBot, Channel
 from botbot.apps.bots.utils import reverse_channel
-from botbot.apps.kudos.models import Kudos, KudosTotal
+
 
 class BaseTestCase(TestCase):
     def setUp(self):
@@ -292,103 +292,3 @@ class RedactTests(TestCase):
             nick='redact',
             timestamp=timezone.now())
         self.assertEqual(redacted.text, log_models.REDACTED_TEXT)
-
-
-class KudosTests(BaseTestCase):
-
-    def setUp(self):
-        super(KudosTests, self).setUp()
-        kudos = []
-        for i, letter in enumerate('abcdefghijklmnopqrstuvwxyz'):
-            kudos.append(Kudos(
-                nick=letter*3, count=1+i+(i % 5), channel=self.public_channel,
-                first=timezone.now()-datetime.timedelta(days=100),
-                recent=timezone.now()))
-        Kudos.objects.bulk_create(kudos)
-        self.url = reverse_channel(self.public_channel, "kudos")
-
-    def test_basic(self):
-        response = self.client.get(self.url)
-        self.assertIn('logs/kudos.html', response.template_name)
-
-    def test_randomized_order(self):
-        scoreboards = []
-        for i in range(10):
-            response = self.client.get(self.url)
-            scoreboards.append(response.context_data['random_scoreboard'])
-        same = True
-        for scoreboard in scoreboards[1:]:
-            if scoreboards[0] != scoreboard:
-                same = False
-                break
-        self.assertFalse(same, 'Scoreboards were not shuffled')
-
-    def test_no_kudos(self):
-        self.public_channel.kudos_set.all().delete()
-        response = self.client.get(self.url)
-        self.assertIn('logs/kudos.html', response.template_name)
-
-    def test_kudos_total(self):
-        KudosTotal.objects.create(
-            channel=self.public_channel, kudos_given=300,
-            message_count=900)
-        response = self.client.get(self.url)
-        self.assertContains(response, ' 33.33%')
-
-    def test_kudos_total_zero(self):
-        KudosTotal.objects.create(
-            channel=self.public_channel, kudos_given=0,
-            message_count=0)
-        response = self.client.get(self.url)
-        self.assertIn('logs/kudos.html', response.template_name)
-        self.assertNotIn('channel_kudos_perc', response.context_data)
-
-
-    def test_not_public_kudos_admin(self):
-        self.public_channel.public_kudos = False
-        self.public_channel.save()
-        admin = account_models.User.objects.create_user(
-            username="admin",
-            password="password",
-            email="admin@botbot.local")
-
-        self.assertTrue(self.client.login(
-            username='admin', password='password'))
-        response = self.client.get(self.url)
-        self.assertIn('logs/kudos.html', response.template_name)
-
-
-class KudosJSONTest(BaseTestCase):
-
-    def setUp(self):
-        super(KudosJSONTest, self).setUp()
-        member = account_models.User.objects.create_user(
-            username="member",
-            password="password",
-            email="member@botbot.local")
-        admin = account_models.User.objects.create_user(
-            username="admin",
-            password="password",
-            email="admin@botbot.local")
-        self.url = reverse_channel(self.public_channel, "kudos_json")
-
-    def test_anonymous(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_basic(self):
-        self.client.login(username='member', password='password')
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/json')
-
-
-    def test_not_public_kudos_admin(self):
-        self.public_channel.public_kudos = False
-        self.public_channel.save()
-
-        self.assertTrue(self.client.login(
-            username='admin', password='password'))
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/json')

@@ -145,7 +145,6 @@ class Channel(TimeStampedModel):
     # Flags
     is_public = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
-    public_kudos = models.BooleanField(default=True)
 
     plugins = models.ManyToManyField('plugins.Plugin',
                                      through='plugins.ActivePlugin')
@@ -222,13 +221,6 @@ class Channel(TimeStampedModel):
                 cached_config = {}
             cache.set(cache_key, cached_config)
         return cached_config
-
-    def user_can_access_kudos(self, user):
-        if self.public_kudos:
-            return True
-        return (
-            user.is_authenticated()
-        )
 
     @property
     def visible_commands_filter(self):

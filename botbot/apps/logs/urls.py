@@ -12,8 +12,6 @@ urlpatterns = [
     url(r'^msg/(?P<msg_pk>\d+)/$', views.SingleLogViewer.as_view(),
         name="log_message_permalink"),
     url(r'^search/$', views.SearchLogViewer.as_view(), name='log_search'),
-    url(r'^kudos.json$', views.Kudos.as_view(), name='kudos_json'),
-    url(r'^kudos/$', views.ChannelKudos.as_view(), name='kudos'),
     url(r'^help/$', views.Help.as_view(), name='help_bot'),
     url(r'^stream/$', views.LogStream.as_view(), name='log_stream'),
     url(r'^$', views.DayLogViewer.as_view(),
