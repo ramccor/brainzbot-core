@@ -43,4 +43,4 @@ class ActivePlugin(models.Model):
         return obj
 
     def __unicode__(self):
-        return u'{0} for {1}'.format(self.plugin.name, self.channel.name)
+        return '{0} for {1}'.format(self.plugin.name, self.channel.name)

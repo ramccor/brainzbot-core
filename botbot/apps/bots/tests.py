@@ -76,5 +76,5 @@ class PrettySlugTestCase(TestCase):
             "irc.synirc.net": "synirc",
         }
 
-        for server, slug in original.iteritems():
+        for server, slug in original.items():
             self.assertEqual(pretty_slug(server), slug)

@@ -14,12 +14,12 @@ from . import utils
 REDACTED_TEXT = '[redacted]'
 
 MSG_TMPL = {
-        u"JOIN": u"{nick} joined the channel",
-        u"NICK": u"{nick} is now known as {text}",
-        u"QUIT": u"{nick} has quit",
-        u"PART": u"{nick} has left the channel",
-        u"ACTION": u"{nick} {text}",
-        u"SHUTDOWN": u"-- BotBot disconnected, possible missing messages --",
+        "JOIN": "{nick} joined the channel",
+        "NICK": "{nick} is now known as {text}",
+        "QUIT": "{nick} has quit",
+        "PART": "{nick} has left the channel",
+        "ACTION": "{nick} {text}",
+        "SHUTDOWN": "-- BotBot disconnected, possible missing messages --",
         }
 
 
@@ -84,16 +84,16 @@ class Log(models.Model):
         return hash(self.nick) % 32
 
     def __unicode__(self):
-        if self.command == u"PRIVMSG":
-            text = u''
+        if self.command == "PRIVMSG":
+            text = ''
             if self.nick:
-                text += u'{0}: '.format(self.nick)
+                text += '{0}: '.format(self.nick)
             text += self.text[:20]
         else:
             try:
                 text = MSG_TMPL[self.command].format(nick=self.nick, text=self.text)
             except KeyError:
-                text = u"{}: {}".format(self.command, self.text)
+                text = "{}: {}".format(self.command, self.text)
 
         return text
 

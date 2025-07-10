@@ -67,16 +67,16 @@ class ChatBot(models.Model):
         return self.server.split(':')[0]
 
     def __unicode__(self):
-        return u'{server} ({nick})'.format(server=self.server, nick=self.nick)
+        return '{server} ({nick})'.format(server=self.server, nick=self.nick)
 
     @property
     def date_cache_key(self):
         return 'dc:{0}'.format(self.pk)
 
     def save(self, *args, **kwargs):
-        self.server_identifier = u"%s.%s" % (
-            slugify(unicode(self.server.replace(":", " ").replace(".", " "))),
-            slugify(unicode(self.nick))
+        self.server_identifier = "%s.%s" % (
+            slugify(str(self.server.replace(":", " ").replace(".", " "))),
+            slugify(str(self.nick))
         )
 
         if not self.slug:
@@ -168,7 +168,7 @@ class Channel(TimeStampedModel):
 
     @classmethod
     def generate_private_slug(cls):
-        return "".join([random.choice(string.ascii_letters) for _ in xrange(8)])
+        return "".join([random.choice(string.ascii_letters) for _ in range(8)])
 
     def get_absolute_url(self):
         from botbot.apps.bots.utils import reverse_channel

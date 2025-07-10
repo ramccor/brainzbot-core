@@ -12,7 +12,7 @@ class JSONField(models.TextField):
         if value == "":
             return None
         try:
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 return json.loads(value)
         except ValueError:
             pass

@@ -12,6 +12,6 @@ class Plugin(BasePlugin):
 
     I'll reply to let you know I'm still here.
     """
-    @listens_to_mentions(ur'^ping$')
+    @listens_to_mentions(r'^ping$')
     def respond_to_ping(self, line):
-        return u'Are you in need of my services, {}?'.format(line.user)
+        return 'Are you in need of my services, {}?'.format(line.user)

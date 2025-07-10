@@ -15,14 +15,14 @@ class BaseConfig(object):
     """
     def __new__(self, *args, **kwargs):
         self.fields = {}
-        for attr, value in self.__dict__.items():
+        for attr, value in list(self.__dict__.items()):
             if isinstance(value, Field):
                 self.fields[attr] = value.default
         return object.__new__(self, *args, **kwargs)
 
     def is_valid(self):
         """Verifies that required fields have a value"""
-        for field_name, value in self.fields.items():
+        for field_name, value in list(self.fields.items()):
             if getattr(self, field_name).required and not value:
                 raise ImproperlyConfigured('"{}" config field is required'.format(field_name))
         return True

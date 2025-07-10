@@ -131,10 +131,10 @@ class Line(object):
 
         if len(nick) == 1:
             # support @<plugin> or !<plugin>
-            regex = ur'^{0}(.*)'.format(re.escape(nick))
+            regex = r'^{0}(.*)'.format(re.escape(nick))
         else:
             # support <nick>: <plugin>
-            regex = ur'^{0}[:\s](.*)'.format(re.escape(nick))
+            regex = r'^{0}[:\s](.*)'.format(re.escape(nick))
         match = re.match(regex, self.full_text, re.IGNORECASE)
         if match:
             LOG.debug('Direct message detected')
@@ -239,7 +239,7 @@ class PluginRunner(object):
         # This is a pared down version of the `check_for_plugin_route_matches`
         # method for firehose plugins (no regexing or return values)
         active_firehose_plugins = line._active_plugin_slugs.intersection(
-            self.routers["firehose"].plugins.viewkeys())
+            self.routers["firehose"].plugins.keys())
         for plugin_slug in active_firehose_plugins:
             for _, func, plugin in self.routers["firehose"].plugins[plugin_slug]:
                 # firehose gets everything, no rule matching
@@ -291,7 +291,7 @@ class PluginRunner(object):
     def check_for_plugin_route_matches(self, line, router):
         """Checks the active plugins' routes and calls functions on matches"""
         # get the active routes for this channel
-        active_slugs = line._active_plugin_slugs.intersection(router.plugins.viewkeys())
+        active_slugs = line._active_plugin_slugs.intersection(router.plugins.keys())
         for plugin_slug in active_slugs:
             for rule, func, plugin in router.plugins[plugin_slug]:
                 if router.name == "commands":

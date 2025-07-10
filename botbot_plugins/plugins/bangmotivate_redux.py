@@ -25,4 +25,4 @@ class Plugin(BasePlugin):
         # args[1] will not exist if the user only typed "!m"
         if len(args) > 0:
             worker = " ".join(args)
-            return u"You're doing good work, {}!".format(worker)
+            return "You're doing good work, {}!".format(worker)

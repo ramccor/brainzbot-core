@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 import collections
 import re
@@ -108,7 +108,7 @@ def parse_logs(qs, stdout=None):
         stdout.write('')
 
     kudos_list = []
-    for c, nick in sorted((c, nick) for nick, c in kudos.items()):
+    for c, nick in sorted((c, nick) for nick, c in list(kudos.items())):
         kudos_list.append({
             'nick': nick,
             'count': c,

@@ -45,7 +45,7 @@ class Command(BaseCommand):
             else:
                 # Look up kudos for this channel, find max(recent), and limit
                 # queryset to after that.
-                recent = channel.kudos_set.aggregate(Max('recent')).values()[0]
+                recent = list(channel.kudos_set.aggregate(Max('recent')).values())[0]
                 if recent:
                     qs = qs.filter(timestamp__gt=recent)
                     if verbosity:
