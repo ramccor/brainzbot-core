@@ -1,5 +1,6 @@
+from inspect import cleandoc
+
 from django.core.cache import cache
-from django.contrib.admindocs.utils import trim_docstring
 from django.db import models
 from importlib import import_module
 
@@ -17,7 +18,7 @@ class Plugin(models.Model):
                            'botbot.apps.plugins.core.'):
             try:
                 docs = import_module(mod_prefix + self.slug).Plugin.__doc__
-                return trim_docstring(docs)
+                return cleandoc(docs)
             except (ImportError, AttributeError):
                 continue
         return ''
@@ -28,8 +29,8 @@ class Plugin(models.Model):
 
 class ActivePlugin(models.Model):
     """An active plugin for a ChatBot"""
-    plugin = models.ForeignKey('plugins.Plugin')
-    channel = models.ForeignKey('bots.Channel')
+    plugin = models.ForeignKey('plugins.Plugin', on_delete=models.CASCADE)
+    channel = models.ForeignKey('bots.Channel', on_delete=models.CASCADE)
     configuration =  JSONField(
             blank=True, default={},
             help_text="User-specified attributes for this plugin " +

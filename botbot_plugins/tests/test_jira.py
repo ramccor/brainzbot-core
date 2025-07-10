@@ -4,7 +4,7 @@
 import pytest
 import json
 import time
-from mock import patch, call
+from unittest.mock import patch, call
 import requests
 from botbot_plugins.base import DummyApp
 from botbot_plugins.plugins import jira
@@ -41,7 +41,7 @@ def clear_recent_issues(app):
     app.storage.delete(ukey)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def app():
     dummy_app = DummyApp(test_plugin=jira.Plugin())
     dummy_app.set_config('jira', {'jira_url': 'https://tickets.test.org', 'bot_name': 'testbot', 'issue_cooldown': 2})

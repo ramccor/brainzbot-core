@@ -1,11 +1,9 @@
-import socket
-
-from djorm_pgfulltext.models import SearchManager
-from djorm_pgfulltext.fields import VectorField
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.db import models
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from botbot.apps.bots.utils import channel_url_kwargs
 
 
@@ -22,8 +20,8 @@ MSG_TMPL = {
 
 
 class Log(models.Model):
-    bot = models.ForeignKey('bots.ChatBot', null=True)
-    channel = models.ForeignKey('bots.Channel', null=True)
+    bot = models.ForeignKey('bots.ChatBot', null=True, on_delete=models.CASCADE)
+    channel = models.ForeignKey('bots.Channel', null=True, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(db_index=True)
     nick = models.CharField(max_length=255)
     text = models.TextField()
@@ -37,19 +35,17 @@ class Log(models.Model):
     #  so 100 should be enough
     room = models.CharField(max_length=100, null=True, blank=True)
 
-    search_index = VectorField()
-
-    objects = SearchManager(
-        fields=('text',),
-        config='pg_catalog.english',   # this is default
-        search_field='search_index',   # this is default
-        auto_update_search_field=True
-    )
+    search_index = SearchVectorField()
 
     class Meta:
         ordering = ('-timestamp',)
         index_together = [
             ['channel', 'timestamp'],
+            GinIndex(
+                SearchVector("body_text", "headline", config="english"),
+                name="search_vector_idx",
+            )
+
         ]
 
     def get_absolute_url(self):

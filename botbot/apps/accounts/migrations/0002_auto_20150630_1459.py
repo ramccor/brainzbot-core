@@ -25,13 +25,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='membership',
             name='channel',
-            field=models.ForeignKey(default=1, to='bots.Channel'),
+            field=models.ForeignKey(default=1, to='bots.Channel', on_delete=models.CASCADE),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='membership',
             name='user',
-            field=models.ForeignKey(default=1, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(default=1, to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=False,
         ),
         migrations.AddField(

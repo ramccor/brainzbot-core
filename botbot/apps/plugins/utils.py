@@ -3,7 +3,6 @@ from functools import wraps
 
 from django.template import Template, Context
 from django.template.defaultfilters import urlize
-from django.utils.timezone import utc
 
 import markdown
 
@@ -29,7 +28,7 @@ def convert_nano_timestamp(nano_timestamp):
         micro = micro[:6]
     rfc3339micro = ''.join([rfc3339, '.', micro, 'Z'])
     micro_timestamp = datetime.datetime.strptime(
-        rfc3339micro, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=utc)
+        rfc3339micro, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=datetime.UTC)
     return micro_timestamp
 
 

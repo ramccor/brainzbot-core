@@ -2,8 +2,7 @@
 
 
 from django.db import models, migrations
-import djorm_pgfulltext.fields
-
+from django.contrib.postgres.search import SearchVectorField
 
 class Migration(migrations.Migration):
 
@@ -24,9 +23,9 @@ class Migration(migrations.Migration):
                 ('host', models.TextField(blank=True, null=True, help_text='')),
                 ('raw', models.TextField(blank=True, null=True, help_text='')),
                 ('room', models.CharField(max_length=100, blank=True, null=True, help_text='')),
-                ('search_index', djorm_pgfulltext.fields.VectorField(null=True, db_index=True, default=b'', editable=False, serialize=False, help_text='')),
-                ('bot', models.ForeignKey(null=True, help_text='', to='bots.ChatBot')),
-                ('channel', models.ForeignKey(null=True, help_text='', to='bots.Channel')),
+                ('search_index', SearchVectorField(null=True, db_index=True, default=b'', editable=False, serialize=False, help_text='')),
+                ('bot', models.ForeignKey(null=True, help_text='', to='bots.ChatBot', on_delete=models.CASCADE)),
+                ('channel', models.ForeignKey(null=True, help_text='', to='bots.Channel', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-timestamp',),

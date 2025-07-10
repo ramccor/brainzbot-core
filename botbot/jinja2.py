@@ -1,9 +1,7 @@
-  # Python 2 only
-
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.timezone import now
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 from jinja2 import Environment
 
@@ -24,7 +22,7 @@ def environment(**options):
     ]
     env = Environment(**options)
     env.globals.update({
-        'gettext': ugettext,
+        'gettext': gettext,
         # django
         'static': staticfiles_storage.url,
         'url': reverse,

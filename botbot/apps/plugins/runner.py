@@ -1,16 +1,14 @@
 # pylint: disable=W0212
 import json
 import logging
-from datetime import datetime
 
-from django.utils.timezone import utc
 import re
+from importlib import import_module
+
 import redis
 import botbot_plugins.plugins
-from botbot_plugins.base import PrivateMessage
 from django.core.cache import cache
 from django.conf import settings
-from django.utils.importlib import import_module
 
 from botbot.apps.bots import models as bots_models
 from botbot.apps.plugins.utils import convert_nano_timestamp, log_on_error

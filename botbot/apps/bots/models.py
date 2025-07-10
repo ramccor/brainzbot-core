@@ -130,7 +130,7 @@ class Channel(TimeStampedModel):
     # These are the default plugin slugs.
     DEFAULT_PLUGINS = ["logger", "ping", "last_seen", "help", "bangmotivate"]
 
-    chatbot = models.ForeignKey(ChatBot)
+    chatbot = models.ForeignKey(ChatBot, on_delete=models.CASCADE)
     name = models.CharField(max_length=250,
                             help_text="IRC expects room name: #django")
     slug = models.SlugField()
@@ -327,7 +327,7 @@ class Channel(TimeStampedModel):
 class UserCount(models.Model):
     """Number of users in a channel, per hour."""
 
-    channel = models.ForeignKey(Channel)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     dt = models.DateField()
     counts = ArrayField(models.IntegerField(blank=True), blank=True)
 

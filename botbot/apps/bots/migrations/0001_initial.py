@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, help_text='', auto_created=True)),
                 ('dt', models.DateField(help_text='')),
                 ('counts', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, size=None)),
-                ('channel', models.ForeignKey(help_text='', to='bots.Channel')),
+                ('channel', models.ForeignKey(help_text='', to='bots.Channel', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='channel',
             name='chatbot',
-            field=models.ForeignKey(help_text='', to='bots.ChatBot'),
+            field=models.ForeignKey(help_text='', to='bots.ChatBot', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

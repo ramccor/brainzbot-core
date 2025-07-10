@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, help_text='', auto_created=True)),
                 ('configuration', botbot.core.fields.JSONField(blank=True, default={}, help_text=b'User-specified attributes for this plugin {"username": "joe", "api-key": "foo"}')),
-                ('channel', models.ForeignKey(help_text='', to='bots.Channel')),
+                ('channel', models.ForeignKey(help_text='', to='bots.Channel', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activeplugin',
             name='plugin',
-            field=models.ForeignKey(help_text='', to='plugins.Plugin'),
+            field=models.ForeignKey(help_text='', to='plugins.Plugin', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

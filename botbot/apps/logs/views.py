@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic import ListView, TemplateView, View
 from django.views.decorators.cache import patch_cache_control
 import pytz
