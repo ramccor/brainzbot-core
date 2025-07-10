@@ -11,8 +11,6 @@ from .apps.bots.utils import reverse_channel
 from .apps.logs.templatetags.logs_tags import bbme_urlizetrunc
 from .apps.plugins.utils import plugin_docs_as_html
 
-from allauth.account.utils import user_display
-from allauth.socialaccount import providers
 from bootstrap_toolkit.templatetags.bootstrap_toolkit import bootstrap_input_type
 
 
@@ -37,10 +35,6 @@ def environment(**options):
         'bbme_urlizetrunc': bbme_urlizetrunc,
         # plugins
         'plugin_docs': plugin_docs_as_html,
-
-        # allauth
-        'socialaccount_providers': providers.registry.get_list(),
-        'user_display': user_display,
 
         # bootstrap_toolkit
         'bootstrap_input_type': bootstrap_input_type,

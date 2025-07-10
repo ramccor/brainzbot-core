@@ -148,8 +148,6 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "django.core.context_processors.request",
-                "allauth.account.context_processors.account",
-                "allauth.socialaccount.context_processors.socialaccount",
             ),
             'debug': DEBUG,
 
@@ -177,9 +175,6 @@ MIDDLEWARE_CLASSES = [
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 AUTHENTICATION_BACKENDS += (
     'django.contrib.auth.backends.ModelBackend',
-
-    # `allauth` specific authentication methods, such as login by e-mail
-    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 #==============================================================================
@@ -297,8 +292,5 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
 )
-
-# Allauth
-ACCOUNT_LOGOUT_ON_GET = (True)
 
 DJANGO_HSTORE_ADAPTER_REGISTRATION = 'connection'
