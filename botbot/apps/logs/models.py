@@ -9,8 +9,6 @@ from django.core.urlresolvers import reverse
 from botbot.apps.bots.utils import channel_url_kwargs
 
 
-from . import utils
-
 REDACTED_TEXT = '[redacted]'
 
 MSG_TMPL = {
@@ -70,16 +68,6 @@ class Log(models.Model):
             else:
                 return self.host
 
-
-    def notify(self):
-        """Send update to Nginx to be sent out via SSE"""
-        utils.send_event_with_id(
-            "log",
-            self.as_html(),
-            self.timestamp.isoformat(),
-            self.get_cleaned_host(),
-            channel=self.channel_id)
-
     def get_nick_color(self):
         return hash(self.nick) % 32
 
@@ -98,13 +86,6 @@ class Log(models.Model):
         return text
 
     def save(self, *args, **kwargs):
-        is_new = False
-        if not self.pk:
-            is_new = True
         if self.nick in settings.EXCLUDE_NICKS:
             self.text = REDACTED_TEXT
-
-        obj = super(Log, self).save(*args, **kwargs)
-        if is_new:
-            self.notify()
-        return obj
+        return super(Log, self).save(*args, **kwargs)

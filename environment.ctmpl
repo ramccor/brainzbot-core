@@ -22,7 +22,6 @@ COMMAND_PREFIX={{template "KEY" "command_prefix"}}
 
 # Unused, hardcoded in uwsgi.ini WEB_PORT=8080
 # Optional
-# PUSH_STREAM_URL=http://localhost:8080/pub/?id={id}
 # MEMCACHE_URL=127.0.0.1:11211
 # STATIC_ROOT=/var/www/botbot/static
 # MEDIA_ROOT=/var/www/botbot/uploads

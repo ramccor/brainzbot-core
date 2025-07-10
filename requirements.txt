@@ -15,8 +15,6 @@ django-pipeline==1.7.0
 djorm-ext-pgfulltext==0.10
 djorm-pgarray==1.2
 
-geoip2==2.1.0
-
 # For production
 uwsgi==2.0.22
 whitenoise==4.1.4

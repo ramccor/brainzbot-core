@@ -116,8 +116,6 @@ DATABASES['default'].update({
     'ATOMIC_REQUESTS': True,
     'OPTIONS': {"application_name": "django"},
 })
-GEOIP_CITY_DB_PATH = os.environ.get('GEOIP_CITY_DB_PATH',
-    os.path.join(VAR_ROOT, 'GeoLite2-City.mmdb'))
 
 #==============================================================================
 # Templates
@@ -266,8 +264,6 @@ REDIS_PLUGIN_QUEUE_URL = os.environ.get('REDIS_PLUGIN_QUEUE_URL')
 REDIS_PLUGIN_STORAGE_URL = os.environ.get('REDIS_PLUGIN_STORAGE_URL')
 
 COMMAND_PREFIX = os.environ.get('COMMAND_PREFIX')
-
-PUSH_STREAM_URL = os.environ.get('PUSH_STREAM_URL', None)
 
 # ==============================================================================
 # Third party app settings
