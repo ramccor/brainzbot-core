@@ -2,7 +2,6 @@
 Channel sitemap
 """
 from django.contrib.sitemaps import Sitemap
-from django.utils.timezone import now
 
 from .models import Channel
 

@@ -1,15 +1,11 @@
-import ast
 import os
-import urllib.parse
-# Import global settings to make it easier to extend settings.
-from django.conf.global_settings import *   # pylint: disable=W0614,W0401
 import dj_database_url
 
 #==============================================================================
 # Generic Django project settings
 #==============================================================================
 
-DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
+DEBUG = os.environ.get('DEBUG', 'True')
 
 SITE_ID = 1
 # Local time zone for this installation. Choices can be found here:
@@ -25,9 +21,9 @@ LANGUAGES = (
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ['WEB_SECRET_KEY']
-AUTH_USER_MODEL = 'accounts.User'
 INSTALLED_APPS = (
-    'botbot.apps.accounts',
+    'django_jinja',  # Must be before django.contrib.staticfiles
+
     'botbot.apps.bots',
     'botbot.apps.logs',
     'botbot.apps.plugins',
@@ -42,11 +38,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
-    'django.contrib.admindocs',
     'django.contrib.sitemaps',
 
-    'bootstrap_toolkit',
+    'bootstrap3',
 )
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
@@ -87,8 +81,6 @@ if not os.path.exists(VAR_ROOT):
 #==============================================================================
 
 ROOT_URLCONF = 'botbot.urls'
-INCLUDE_DJANGO_ADMIN = ast.literal_eval(os.environ.get(
-                                        'INCLUDE_DJANGO_ADMIN', 'True'))
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/uploads/'
@@ -114,7 +106,6 @@ DATABASES = {'default': dj_database_url.config(env='STORAGE_URL')}
 DATABASES['default'].update({
     'CONN_MAX_AGE': None,
     'ATOMIC_REQUESTS': True,
-    'OPTIONS': {"application_name": "django"},
 })
 
 #==============================================================================
@@ -137,7 +128,7 @@ TEMPLATES = [
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
-            'context_processors': (
+            'context_processors': [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.i18n",
@@ -145,35 +136,58 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "django.core.context_processors.request",
-            ),
+                "django.template.context_processors.request",
+            ],
             'debug': DEBUG,
-
         },
     },
 ]
 #==============================================================================
 # Middleware
 #==============================================================================
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + MIDDLEWARE_CLASSES + [
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'botbot.core.middleware.TimezoneMiddleware',
 ]
+
+# Bootstrap 3 settings
+BOOTSTRAP3 = {
+    'jquery_url': '//code.jquery.com/jquery-3.6.0.min.js',
+    'base_url': '//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/',
+    'include_jquery': True,
+    'javascript_url': '//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js',
+    'css_url': '//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css',
+    'theme_url': None,
+    'javascript_in_head': False,
+    'include_clearfix': True,
+    'use_required_attribute': True,
+    'set_placeholder': True,
+    'required_css_class': 'required',
+    'error_css_class': 'has-error',
+    'success_css_class': 'has-success',
+    'formset_renderers': {
+        'default': 'bootstrap3.renderers.FormsetRenderer',
+    },
+    'form_renderers': {
+        'default': 'bootstrap3.renderers.FormRenderer',
+    },
+    'field_renderers': {
+        'default': 'bootstrap3.renderers.FieldRenderer',
+        'inline': 'bootstrap3.renderers.InlineFieldRenderer',
+    },
+}
 
 #==============================================================================
 # Auth / security
 #============================================================================
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
-AUTHENTICATION_BACKENDS += (
-    'django.contrib.auth.backends.ModelBackend',
-)
 
 #==============================================================================
 # Logger project settings
@@ -222,16 +236,10 @@ LOGGING = {
 #=============================================================================
 # Cache
 #=============================================================================
-if 'MEMCACHE_URL' in os.environ:
-    DEFAULT_CACHE = {
-        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
-        'LOCATION': os.environ['MEMCACHE_URL'],
-    }
-else:
-    DEFAULT_CACHE = {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'botbot',
-    }
+DEFAULT_CACHE = {
+    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    'LOCATION': 'botbot',
+}
 
 CACHES = {
     'default': DEFAULT_CACHE
@@ -265,28 +273,7 @@ REDIS_PLUGIN_STORAGE_URL = os.environ.get('REDIS_PLUGIN_STORAGE_URL')
 
 COMMAND_PREFIX = os.environ.get('COMMAND_PREFIX')
 
-# ==============================================================================
-# Third party app settings
-# ==============================================================================
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-# SOUTH_DATABASE_ADAPTERS = {'default': 'south.db.postgresql_psycopg2'}
-
-SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
-SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['email']
-SOCIAL_AUTH_DEFAULT_USERNAME = 'user'
-SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
-SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/accounts/manage/'
-SOCIAL_AUTH_LOGIN_ERROR_URL = '/accounts/login/?error'
-SOCIAL_AUTH_PIPELINE = (
-    'social.pipeline.social_auth.social_details',
-    'social.pipeline.social_auth.social_uid',
-    'social.pipeline.social_auth.auth_allowed',
-    'social.pipeline.social_auth.social_user',
-    #'social.pipeline.user.get_username',
-    #'social.pipeline.user.create_user',
-    'social.pipeline.social_auth.associate_by_email',
-    'social.pipeline.social_auth.load_extra_data',
-    'social.pipeline.user.user_details'
-)
-
-DJANGO_HSTORE_ADAPTER_REGISTRATION = 'connection'
+import warnings
+warnings.filterwarnings("error")

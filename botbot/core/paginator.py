@@ -18,8 +18,9 @@ class InfinitePaginator(Paginator):
         orphans = 0 # no orphans
         super(InfinitePaginator, self).__init__(object_list, per_page, orphans,
             allow_empty_first_page)
-        # no count or num pages
-        del self._num_pages, self._count
+        # Initialize _num_pages and _count as None since we don't want to calculate them
+        self._num_pages = None
+        self._count = None
         # bonus links
         self.link_template = link_template
 

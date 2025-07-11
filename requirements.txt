@@ -1,20 +1,18 @@
-django==1.11.29
-
+Django==5.2.4
 pytz
-Jinja2==2.11.3
-django-jinja==2.6.0
-psycopg2==2.7.3.2
-dj-database-url==0.2.2
+Jinja2==3.1.6
+django-jinja==2.11.0
+psycopg2-binary==2.9.10
+dj-database-url==3.0.1
 # TODO (yml): Remove hstore when we squash the migration
-django-hstore==1.2.5
+django-hstore==1.4.2
 
-markdown==2.3.1
-redis==2.9.1
-django-pipeline==1.7.0
-
-djorm-ext-pgfulltext==0.10
+markdown==3.8.2
+redis==6.2.0
+django-pipeline==4.0.0
 djorm-pgarray==1.2
+django-bootstrap3==25.1
 
 # For production
-uwsgi==2.0.22
-whitenoise==4.1.4
+uwsgi==2.0.30
+whitenoise==6.9.0

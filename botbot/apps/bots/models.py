@@ -66,7 +66,7 @@ class ChatBot(models.Model):
     def legacy_slug(self):
         return self.server.split(':')[0]
 
-    def __unicode__(self):
+    def __str__(self):
         return '{server} ({nick})'.format(server=self.server, nick=self.nick)
 
     @property
@@ -155,7 +155,7 @@ class Channel(TimeStampedModel):
 
     objects = ChannelManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -326,10 +326,9 @@ class Channel(TimeStampedModel):
 
 class UserCount(models.Model):
     """Number of users in a channel, per hour."""
-
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     dt = models.DateField()
     counts = ArrayField(models.IntegerField(blank=True), blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} on {}: {}".format(self.channel, self.dt, self.counts)

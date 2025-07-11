@@ -38,7 +38,7 @@ class RealPluginMixin(object):
         ukey = self.unique_key(key)
         value = self.app.storage.get(ukey)
         if value:
-            value = str(value, 'utf-8')
+            value = value.decode('utf-8')
             LOG.info('Retrieved: %s=%s', key, value)
         return value
 

@@ -1,5 +1,4 @@
 """Near duplicate of Django's `urlizetrunc` with support for image classes"""
-
 from django.template.base import Node
 from django.template.library import Library
 from django.template.defaultfilters import stringfilter, urlizetrunc
@@ -19,7 +18,7 @@ def bbme_urlizetrunc(value, limit, autoescape=None):
     Argument: Length to truncate URLs to.
     """
     return mark_safe(urlizetrunc(
-        value, trim_url_limit=int(limit), nofollow=True, autoescape=autoescape
+        value, limit=int(limit), autoescape=autoescape
     ))
 bbme_urlizetrunc = keep_lazy_text(bbme_urlizetrunc)
 

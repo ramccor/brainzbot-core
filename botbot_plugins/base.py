@@ -49,7 +49,7 @@ class BasePlugin(object):
         SET: http://redis.io/commands/set
         """
         ukey = self._unique_key(key)
-        self.app.storage.set(ukey, str(value).encode('utf-8'))
+        self.app.storage.set(ukey, value.encode('utf-8'))
 
     def retrieve(self, key):
         """Retrieves string stored at `key`
@@ -59,7 +59,7 @@ class BasePlugin(object):
         ukey = self._unique_key(key)
         value = self.app.storage.get(ukey)
         if value:
-            value = str(value, 'utf-8')
+            value = value.decode('utf-8')
         return value
 
     def delete(self, key):
@@ -250,7 +250,7 @@ class DummyApp(Cmd):
 
     def check_routes_for_matches(self, line, router):
         """Checks if line matches the routes' rules and calls functions"""
-        for _, route_list in list(router.plugins.items()):
+        for _, route_list in router.plugins.items():
             for rule, func in route_list:
                 if router.name == "commands":
                     cmd = rule

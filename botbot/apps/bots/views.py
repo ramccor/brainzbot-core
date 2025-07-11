@@ -1,7 +1,7 @@
 from django import http
-from django.urls import reverse_lazy
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
 from django.views.generic.list import ListView
 
 from . import models

@@ -1,9 +1,8 @@
-from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.db import models
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.contrib.postgres.search import SearchVectorField
 from botbot.apps.bots.utils import channel_url_kwargs
 
 
@@ -35,17 +34,13 @@ class Log(models.Model):
     #  so 100 should be enough
     room = models.CharField(max_length=100, null=True, blank=True)
 
-    search_index = SearchVectorField()
+    search_index = SearchVectorField(null=True)
 
     class Meta:
         ordering = ('-timestamp',)
-        index_together = [
-            ['channel', 'timestamp'],
-            GinIndex(
-                SearchVector("body_text", "headline", config="english"),
-                name="search_vector_idx",
-            )
-
+        indexes = [
+            models.Index(fields=('channel', 'timestamp')),
+            # todo: add search vector index
         ]
 
     def get_absolute_url(self):
@@ -67,7 +62,7 @@ class Log(models.Model):
     def get_nick_color(self):
         return hash(self.nick) % 32
 
-    def __unicode__(self):
+    def __str__(self):
         if self.command == "PRIVMSG":
             text = ''
             if self.nick:

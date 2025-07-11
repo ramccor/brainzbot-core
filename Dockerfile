@@ -1,4 +1,4 @@
-FROM metabrainz/python:2.7-20220421 as brainzbot-base
+FROM metabrainz/python:3.13-20250616 as brainzbot-base
 
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8

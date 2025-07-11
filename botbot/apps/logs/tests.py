@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from datetime import datetime, timedelta
 
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -177,7 +177,7 @@ class TemplateTestCase(TestCase):
             timestamp=timezone.now(), nick='nick', text='<script>alert("hi")</script>',
             command='PRIVMSG')
         response = SimpleTemplateResponse('logs/log_display.html', {'message_list': [log]}).render()
-        self.assertIn('&lt;script&gt;alert', response.content)
+        self.assertIn(b'&lt;script&gt;alert', response.content)
 
 
 class TemplateTagTestCase(TestCase):

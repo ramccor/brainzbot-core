@@ -1,11 +1,8 @@
 import datetime
-import json
 import math
-import random
 import re
 
 from django.conf import settings
-from django.contrib.humanize.templatetags import humanize
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import Http404, HttpResponse
@@ -20,7 +17,6 @@ from botbot.apps.bots.utils import reverse_channel
 from botbot.apps.bots.views import ChannelMixin
 from . import forms
 from botbot.apps.logs.models import Log
-
 
 
 class Help(ChannelMixin, TemplateView):
@@ -211,7 +207,7 @@ class LogViewer(ChannelMixin, object):
             self.include_timeline = False
             self.template_name = 'logs/logs.txt'
             self.content_type = 'text/plain; charset=utf-8'
-        elif self.request.is_ajax():
+        elif self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             self.format = 'ajax'
             self.include_timeline = False
             self.template_name = 'logs/log_display.html'
@@ -221,15 +217,12 @@ class LogViewer(ChannelMixin, object):
             self.include_timeline = True
             self.template_name = "logs/logs.html"
 
-
     def get_ordered_queryset(self, queryset):
         order = 'timestamp'
         if self.newest_first:
             order = '-timestamp'
 
         return queryset.order_by(order)
-
-
 
     def get_context_data(self, **kwargs):
         context = super(LogViewer, self).get_context_data(**kwargs)
@@ -249,15 +242,13 @@ class LogViewer(ChannelMixin, object):
         size = self.channel.current_size()
         context.update({
             'size': size,
-            'big': (size >= settings.BIG_CHANNEL),
+            'big': (size is not None and size >= settings.BIG_CHANNEL) if hasattr(settings, 'BIG_CHANNEL') else False,
             'prev_page': self.prev_page,
             'next_page': self.next_page,
             'current_page': self.current_page,
         })
 
         return context
-
-
 
     def render_to_response(self, context, **response_kwargs):
         response = super(LogViewer, self).render_to_response(
@@ -283,12 +274,10 @@ class LogViewer(ChannelMixin, object):
             if self.prev_page:
                 response['X-PrevPage'] = self.prev_page
 
-        if has_next_page and self.request.user.is_anonymous():
+        if has_next_page:
             patch_cache_control(
                 response, public=True,
                 max_age=settings.CACHE_MIDDLEWARE_SECONDS)
-        else:
-            patch_cache_control(response, private=True)
         return response
 
     def _pages_for_queryset(self, queryset):

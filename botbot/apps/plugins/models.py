@@ -4,8 +4,6 @@ from django.core.cache import cache
 from django.db import models
 from importlib import import_module
 
-from botbot.core.fields import JSONField
-
 
 class Plugin(models.Model):
     """A global plugin registered in botbot"""
@@ -23,7 +21,7 @@ class Plugin(models.Model):
                 continue
         return ''
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -31,8 +29,8 @@ class ActivePlugin(models.Model):
     """An active plugin for a ChatBot"""
     plugin = models.ForeignKey('plugins.Plugin', on_delete=models.CASCADE)
     channel = models.ForeignKey('bots.Channel', on_delete=models.CASCADE)
-    configuration =  JSONField(
-            blank=True, default={},
+    configuration = models.JSONField(
+            blank=True, default=dict,
             help_text="User-specified attributes for this plugin " +
             '{"username": "joe", "api-key": "foo"}')
 
@@ -43,5 +41,5 @@ class ActivePlugin(models.Model):
         cache.delete(self.channel.active_plugin_slugs_cache_key)
         return obj
 
-    def __unicode__(self):
-        return '{0} for {1}'.format(self.plugin.name, self.channel.name)
+    def __str__(self):
+        return '{} for {}'.format(self.plugin.name, self.channel.name)
