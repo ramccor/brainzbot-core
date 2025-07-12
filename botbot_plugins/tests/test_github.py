@@ -1,8 +1,8 @@
 import pytest
-from mock import patch, call
+from unittest.mock import patch
 import requests
-from botbot_plugins.base import DummyApp
 from botbot_plugins.plugins import github
+from botbot_plugins.tests.dummy import DummyApp
 
 
 class FakeResponse(object):
@@ -14,7 +14,7 @@ class FakeResponse(object):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def app():
     dummy_app = DummyApp(test_plugin=github.Plugin())
     dummy_app.set_config('github', {'organization': 'metabrainz'})

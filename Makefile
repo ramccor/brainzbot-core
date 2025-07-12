@@ -91,15 +91,10 @@ local-settings: .env
 ### General Tasks
 dependencies: less-install pip-install local-settings $(LOCAL_BIN)/brainzbot-bot
 
-$(LOCAL_VAR)/GeoLite2-City.mmdb:
-	curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz | gunzip -c > $@
-
-geoip-db: $(LOCAL_VAR)/GeoLite2-City.mmdb
-
 run: dependencies
 	honcho start
 
 docs: $(LOCAL_BIN)/sphinx-build
 	cd docs && make html
 
-.PHONY: clean-pyc run pip-install less-install jshint-install dependencies local-settings docs geoip-db
+.PHONY: clean-pyc run pip-install less-install jshint-install dependencies local-settings docs

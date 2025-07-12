@@ -1,31 +1,26 @@
-import socket
-
-from djorm_pgfulltext.models import SearchManager
-from djorm_pgfulltext.fields import VectorField
 from django.db import models
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.urls import reverse
+from django.contrib.postgres.search import SearchVectorField
 from botbot.apps.bots.utils import channel_url_kwargs
 
-
-from . import utils
 
 REDACTED_TEXT = '[redacted]'
 
 MSG_TMPL = {
-        u"JOIN": u"{nick} joined the channel",
-        u"NICK": u"{nick} is now known as {text}",
-        u"QUIT": u"{nick} has quit",
-        u"PART": u"{nick} has left the channel",
-        u"ACTION": u"{nick} {text}",
-        u"SHUTDOWN": u"-- BotBot disconnected, possible missing messages --",
+        "JOIN": "{nick} joined the channel",
+        "NICK": "{nick} is now known as {text}",
+        "QUIT": "{nick} has quit",
+        "PART": "{nick} has left the channel",
+        "ACTION": "{nick} {text}",
+        "SHUTDOWN": "-- BotBot disconnected, possible missing messages --",
         }
 
 
 class Log(models.Model):
-    bot = models.ForeignKey('bots.ChatBot', null=True)
-    channel = models.ForeignKey('bots.Channel', null=True)
+    bot = models.ForeignKey('bots.ChatBot', null=True, on_delete=models.CASCADE)
+    channel = models.ForeignKey('bots.Channel', null=True, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(db_index=True)
     nick = models.CharField(max_length=255)
     text = models.TextField()
@@ -39,19 +34,13 @@ class Log(models.Model):
     #  so 100 should be enough
     room = models.CharField(max_length=100, null=True, blank=True)
 
-    search_index = VectorField()
-
-    objects = SearchManager(
-        fields=('text',),
-        config='pg_catalog.english',   # this is default
-        search_field='search_index',   # this is default
-        auto_update_search_field=True
-    )
+    search_index = SearchVectorField(null=True)
 
     class Meta:
         ordering = ('-timestamp',)
-        index_together = [
-            ['channel', 'timestamp'],
+        indexes = [
+            models.Index(fields=('channel', 'timestamp')),
+            # todo: add search vector index
         ]
 
     def get_absolute_url(self):
@@ -70,41 +59,24 @@ class Log(models.Model):
             else:
                 return self.host
 
-
-    def notify(self):
-        """Send update to Nginx to be sent out via SSE"""
-        utils.send_event_with_id(
-            "log",
-            self.as_html(),
-            self.timestamp.isoformat(),
-            self.get_cleaned_host(),
-            channel=self.channel_id)
-
     def get_nick_color(self):
         return hash(self.nick) % 32
 
-    def __unicode__(self):
-        if self.command == u"PRIVMSG":
-            text = u''
+    def __str__(self):
+        if self.command == "PRIVMSG":
+            text = ''
             if self.nick:
-                text += u'{0}: '.format(self.nick)
+                text += '{0}: '.format(self.nick)
             text += self.text[:20]
         else:
             try:
                 text = MSG_TMPL[self.command].format(nick=self.nick, text=self.text)
             except KeyError:
-                text = u"{}: {}".format(self.command, self.text)
+                text = "{}: {}".format(self.command, self.text)
 
         return text
 
     def save(self, *args, **kwargs):
-        is_new = False
-        if not self.pk:
-            is_new = True
         if self.nick in settings.EXCLUDE_NICKS:
             self.text = REDACTED_TEXT
-
-        obj = super(Log, self).save(*args, **kwargs)
-        if is_new:
-            self.notify()
-        return obj
+        return super(Log, self).save(*args, **kwargs)

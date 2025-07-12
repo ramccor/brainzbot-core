@@ -1,9 +1,8 @@
+from inspect import cleandoc
+
 from django.core.cache import cache
-from django.contrib.admindocs.utils import trim_docstring
 from django.db import models
 from importlib import import_module
-
-from botbot.core.fields import JSONField
 
 
 class Plugin(models.Model):
@@ -17,21 +16,21 @@ class Plugin(models.Model):
                            'botbot.apps.plugins.core.'):
             try:
                 docs = import_module(mod_prefix + self.slug).Plugin.__doc__
-                return trim_docstring(docs)
+                return cleandoc(docs)
             except (ImportError, AttributeError):
                 continue
         return ''
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class ActivePlugin(models.Model):
     """An active plugin for a ChatBot"""
-    plugin = models.ForeignKey('plugins.Plugin')
-    channel = models.ForeignKey('bots.Channel')
-    configuration =  JSONField(
-            blank=True, default={},
+    plugin = models.ForeignKey('plugins.Plugin', on_delete=models.CASCADE)
+    channel = models.ForeignKey('bots.Channel', on_delete=models.CASCADE)
+    configuration = models.JSONField(
+            blank=True, default=dict,
             help_text="User-specified attributes for this plugin " +
             '{"username": "joe", "api-key": "foo"}')
 
@@ -42,5 +41,5 @@ class ActivePlugin(models.Model):
         cache.delete(self.channel.active_plugin_slugs_cache_key)
         return obj
 
-    def __unicode__(self):
-        return u'{0} for {1}'.format(self.plugin.name, self.channel.name)
+    def __str__(self):
+        return '{} for {}'.format(self.plugin.name, self.channel.name)

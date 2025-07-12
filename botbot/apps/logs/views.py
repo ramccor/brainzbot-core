@@ -1,17 +1,14 @@
 import datetime
-import json
 import math
-import random
 import re
 
 from django.conf import settings
-from django.contrib.humanize.templatetags import humanize
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic import ListView, TemplateView, View
 from django.views.decorators.cache import patch_cache_control
 import pytz
@@ -20,8 +17,6 @@ from botbot.apps.bots.utils import reverse_channel
 from botbot.apps.bots.views import ChannelMixin
 from . import forms
 from botbot.apps.logs.models import Log
-from botbot.apps.kudos.models import KudosTotal
-
 
 
 class Help(ChannelMixin, TemplateView):
@@ -212,7 +207,7 @@ class LogViewer(ChannelMixin, object):
             self.include_timeline = False
             self.template_name = 'logs/logs.txt'
             self.content_type = 'text/plain; charset=utf-8'
-        elif self.request.is_ajax():
+        elif self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             self.format = 'ajax'
             self.include_timeline = False
             self.template_name = 'logs/log_display.html'
@@ -222,15 +217,12 @@ class LogViewer(ChannelMixin, object):
             self.include_timeline = True
             self.template_name = "logs/logs.html"
 
-
     def get_ordered_queryset(self, queryset):
         order = 'timestamp'
         if self.newest_first:
             order = '-timestamp'
 
         return queryset.order_by(order)
-
-
 
     def get_context_data(self, **kwargs):
         context = super(LogViewer, self).get_context_data(**kwargs)
@@ -245,22 +237,18 @@ class LogViewer(ChannelMixin, object):
                 'search_form': forms.SearchForm(),
                 'show_first_header': self.show_first_header,
                 'newest_first': self.newest_first,
-                'show_kudos': self.channel.user_can_access_kudos(
-                    self.request.user),
             })
 
         size = self.channel.current_size()
         context.update({
             'size': size,
-            'big': (size >= settings.BIG_CHANNEL),
+            'big': (size is not None and size >= settings.BIG_CHANNEL) if hasattr(settings, 'BIG_CHANNEL') else False,
             'prev_page': self.prev_page,
             'next_page': self.next_page,
             'current_page': self.current_page,
         })
 
         return context
-
-
 
     def render_to_response(self, context, **response_kwargs):
         response = super(LogViewer, self).render_to_response(
@@ -286,12 +274,10 @@ class LogViewer(ChannelMixin, object):
             if self.prev_page:
                 response['X-PrevPage'] = self.prev_page
 
-        if has_next_page and self.request.user.is_anonymous():
+        if has_next_page:
             patch_cache_control(
                 response, public=True,
                 max_age=settings.CACHE_MIDDLEWARE_SECONDS)
-        else:
-            patch_cache_control(response, private=True)
         return response
 
     def _pages_for_queryset(self, queryset):
@@ -447,7 +433,7 @@ class DayLogViewer(PaginatorPageLinksMixin, LogDateMixin, LogViewer, ListView):
 
         # Use the last page.
         self.kwargs['page'] = 'last'
-        return _utc_now().date()
+        return datetime.datetime.now(tz=pytz.timezone("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class SearchLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
@@ -490,7 +476,7 @@ class SearchLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
             self.search_term = self.search_term.replace(matches.groups()[0], '')
             filter_args = filter_args & Q(nick__icontains=matches.groups()[1])
 
-        return self.channel.log_set.search(self.search_term).filter(filter_args)
+        return self.channel.log_set.filter(search_index=self.search_term).filter(filter_args)
 
 
 class SingleLogViewer(DayLogViewer):
@@ -534,6 +520,7 @@ class SingleLogViewer(DayLogViewer):
         oparams.update(params)
         return '{0}?{1}'.format(url, oparams.urlencode())
 
+
 class MissedLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
     include_timeline = False
     show_first_header = True
@@ -572,102 +559,3 @@ class MissedLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
         self.fetch_after = (
             last_exit.timestamp - datetime.timedelta(milliseconds=1))
         return queryset.filter(**date_filter)
-
-
-class KudosMixin(object):
-    """
-    View mixin to check that kudos access is allowed.
-
-    If the channel's ``public_kudos`` is False then only accessible to channel
-    admins.
-
-    Must go after ChannelMixin.
-    """
-
-    def dispatch(self, *args, **kwargs):
-        """
-        Check kudos authorization.
-        """
-        if not self.channel.user_can_access_kudos(self.request.user):
-            raise Http404("Only accessible to channel admins")
-        return super(KudosMixin, self).dispatch(*args, **kwargs)
-
-
-class Kudos(ChannelMixin, KudosMixin, View):
-    """
-    View that returns a ranked JSON list of users with the most kudos.
-
-    Not accessible to anonymous users.
-    """
-
-    def dispatch(self, *args, **kwargs):
-        if not self.request.user.is_authenticated():
-            raise Http404('Only accessible to authenticated users')
-        return super(Kudos, self).dispatch(*args, **kwargs)
-
-    def get(self, *args, **kwargs):
-        return HttpResponse(
-            json.dumps(
-                self.channel.kudos_set.ranks(debug=settings.DEBUG),
-                indent=2 if settings.DEBUG else None),
-            content_type='text/json')
-
-
-class ChannelKudos(ChannelMixin, KudosMixin, TemplateView):
-    """
-    Display a shuffled subset of the people with the most kudos.
-    """
-    template_name = 'logs/kudos.html'
-
-    def rounded_percentage(self, score, total):
-        percentage = score / float(total) * 100
-        for i in (1, 10, 25, 50):
-            if i >= percentage:
-                return i
-
-    def get_context_data(self, **kwargs):
-        nick = self.request.GET.get('nick')
-
-        ranks = self.channel.kudos_set.ranks(debug=nick)
-        top_tier = ranks[:100]
-        if len(top_tier) > 20:
-            scoreboard = [r[0] for r in random.sample(top_tier, 20)]
-        elif len(top_tier) > 4:
-            scoreboard = random.shuffle([r[0] for r in ranks])
-        else:
-            scoreboard = None
-        kwargs.update({
-            'random_scoreboard': scoreboard,
-        })
-
-        try:
-            channel_kudos = self.channel.kudostotal
-        except KudosTotal.DoesNotExist:
-            channel_kudos = None
-        if channel_kudos and channel_kudos.message_count:
-            if channel_kudos.message_count > 1000000:
-                kwargs['channel_messages'] = humanize.intword(
-                    channel_kudos.message_count)
-            else:
-                kwargs['channel_messages'] = humanize.intcomma(
-                    channel_kudos.message_count)
-            kwargs['channel_kudos_perc'] = '{:.2%}'.format(
-                channel_kudos.appreciation)
-
-        if nick:
-            nick_lower = nick.lower()
-            details = None
-            for rank_nick, alltime, info in ranks:
-                if rank_nick == nick_lower:
-                    details = {
-                        'alltime': alltime,
-                        'alltime_perc': self.rounded_percentage(
-                            alltime, len(ranks)),
-                        'current': info['current_rank'],
-                        'current_perc': self.rounded_percentage(
-                            info['current_rank'], len(ranks)),
-                    }
-                    break
-            kwargs['search'] = {'nick': nick, 'details': details}
-
-        return super(ChannelKudos, self).get_context_data(**kwargs)

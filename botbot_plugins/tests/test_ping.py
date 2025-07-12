@@ -1,5 +1,5 @@
 import pytest
-from botbot_plugins.base import DummyApp
+from botbot_plugins.tests.dummy import DummyApp
 from botbot_plugins.plugins import ping
 
 @pytest.fixture

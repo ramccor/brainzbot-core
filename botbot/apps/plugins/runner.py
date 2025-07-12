@@ -1,16 +1,14 @@
 # pylint: disable=W0212
 import json
 import logging
-from datetime import datetime
 
-from django.utils.timezone import utc
 import re
+from importlib import import_module
+
 import redis
 import botbot_plugins.plugins
-from botbot_plugins.base import PrivateMessage
 from django.core.cache import cache
 from django.conf import settings
-from django.utils.importlib import import_module
 
 from botbot.apps.bots import models as bots_models
 from botbot.apps.plugins.utils import convert_nano_timestamp, log_on_error
@@ -131,10 +129,10 @@ class Line(object):
 
         if len(nick) == 1:
             # support @<plugin> or !<plugin>
-            regex = ur'^{0}(.*)'.format(re.escape(nick))
+            regex = r'^{0}(.*)'.format(re.escape(nick))
         else:
             # support <nick>: <plugin>
-            regex = ur'^{0}[:\s](.*)'.format(re.escape(nick))
+            regex = r'^{0}[:\s](.*)'.format(re.escape(nick))
         match = re.match(regex, self.full_text, re.IGNORECASE)
         if match:
             LOG.debug('Direct message detected')
@@ -239,7 +237,7 @@ class PluginRunner(object):
         # This is a pared down version of the `check_for_plugin_route_matches`
         # method for firehose plugins (no regexing or return values)
         active_firehose_plugins = line._active_plugin_slugs.intersection(
-            self.routers["firehose"].plugins.viewkeys())
+            self.routers["firehose"].plugins.keys())
         for plugin_slug in active_firehose_plugins:
             for _, func, plugin in self.routers["firehose"].plugins[plugin_slug]:
                 # firehose gets everything, no rule matching
@@ -272,6 +270,7 @@ class PluginRunner(object):
                             channel=line._channel,
                             chatbot_id=line._chatbot_id,
                             app=self)
+        plugin.initialize()
         return plugin
 
     def run_plugin(self, line, plugin, plugin_slug, func, arg_dict):
@@ -291,7 +290,7 @@ class PluginRunner(object):
     def check_for_plugin_route_matches(self, line, router):
         """Checks the active plugins' routes and calls functions on matches"""
         # get the active routes for this channel
-        active_slugs = line._active_plugin_slugs.intersection(router.plugins.viewkeys())
+        active_slugs = line._active_plugin_slugs.intersection(router.plugins.keys())
         for plugin_slug in active_slugs:
             for rule, func, plugin in router.plugins[plugin_slug]:
                 if router.name == "commands":

@@ -32,7 +32,7 @@ class Plugin(BasePlugin):
         {{ command_prefix }}braindump
     """
 
-    @listens_to_regex_command("remember", ur"(?P<key>.+?)\s*=\s*(?P<value>.*)")
+    @listens_to_regex_command("remember", r"(?P<key>.+?)\s*=\s*(?P<value>.*)")
     def remember(self, line, key, value):
         try:
             memory = json.loads(self.retrieve("memory"))
@@ -44,17 +44,17 @@ class Plugin(BasePlugin):
         self.store("memory", json.dumps(memory))
 
         self.store(key, value)
-        return u'I will remember "{0}" for you {1}.'.format(key, line.user)
+        return 'I will remember "{0}" for you {1}.'.format(key, line.user)
 
-    @listens_to_regex_command("recall", ur"(?P<key>.*)")
+    @listens_to_regex_command("recall", r"(?P<key>.*)")
     def recall(self, line, key):
         value = self.retrieve(key)
         if value:
             return value
         else:
-            return u'I\'m sorry, I don\'t remember "{0}", are you sure I should know about it?'.format(key)
+            return 'I\'m sorry, I don\'t remember "{0}", are you sure I should know about it?'.format(key)
 
-    @listens_to_regex_command("forget", ur"(?P<key>.*)")
+    @listens_to_regex_command("forget", r"(?P<key>.*)")
     def forget(self, line, key):
         try:
             memory = json.loads(self.retrieve("memory"))
@@ -62,13 +62,13 @@ class Plugin(BasePlugin):
             memory = []
 
         if key not in memory:
-            return u'I\'m sorry, I don\'t remember "{0}", are you sure I should know about it?'.format(key)
+            return 'I\'m sorry, I don\'t remember "{0}", are you sure I should know about it?'.format(key)
 
         memory.remove(key)
         self.store("memory", json.dumps(memory))
 
         self.delete(key)
-        return u'What was "{0}" all about?'.format(key)
+        return 'What was "{0}" all about?'.format(key)
 
     @listens_to_command("braindump")
     def braindump(self, line, args):
@@ -80,6 +80,6 @@ class Plugin(BasePlugin):
         if len(memory) == 0:
             return "I have no memory yet, use the recall command to make me remember stuff for you."
         elif len(memory) == 1:
-            return u'I remember "{0}".'.format(memory[0])
+            return 'I remember "{0}".'.format(memory[0])
         else:
-            return u'I remember "{0}" and "{1}".'.format('", "'.join(memory[:-1]), memory[-1])
+            return 'I remember "{0}" and "{1}".'.format('", "'.join(memory[:-1]), memory[-1])

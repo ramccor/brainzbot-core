@@ -1,9 +1,9 @@
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, re_path
 
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    re_path(r'^admin/', admin.site.urls),
 ]

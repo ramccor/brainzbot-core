@@ -1,12 +1,15 @@
 from ..base import BasePlugin
-from ..decorators import listens_to_all
+from ..decorators import listens_to_command
 
 
 class Plugin(BasePlugin):
     """
+    Rewrite of bangmotivate using the new listens_to_command decorator.
+
     Notifies people of the excellent work they are doing.
 
     Let me know who is doing good work:
+    (Assuming COMMAND_PREFIX is !)
 
         !m {{ nick }}
 
@@ -17,6 +20,9 @@ class Plugin(BasePlugin):
     http://motivate.im/
     """
 
-    @listens_to_all(ur'^\!m (?P<nick>.+?)$')
-    def motivate(self, line, nick):
-        return u"You're doing good work, {}!".format(nick)
+    @listens_to_command("m")
+    def motivate(self, line, args):
+        # args[1] will not exist if the user only typed "!m"
+        if len(args) > 0:
+            worker = " ".join(args)
+            return "You're doing good work, {}!".format(worker)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from botbot_plugins.base import DummyApp
+from botbot_plugins.tests.dummy import DummyApp
 from botbot_plugins.plugins import metabrain
 
 
@@ -20,26 +20,26 @@ def test_empty(app):
 def test_remember(app):
     responses = app.respond("!remember the cake=is a lie")
     assert responses == ["I will remember \"the cake\" for you repl_user."]
-    responses = app.respond(ur"!recall the cake")
+    responses = app.respond(r"!recall the cake")
     assert responses == ["is a lie"]
     responses = app.respond("!braindump")
     assert responses == ["I remember \"the cake\"."]
 
-    responses = app.respond(u"!remember ünîcödé=В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!")
-    assert responses == [u"I will remember \"ünîcödé\" for you repl_user."]
-    responses = app.respond(ur"!recall ünîcödé")
-    assert responses == [u"В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!"]
+    responses = app.respond("!remember ünîcödé=В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!")
+    assert responses == ["I will remember \"ünîcödé\" for you repl_user."]
+    responses = app.respond(r"!recall ünîcödé")
+    assert responses == ["В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!"]
     responses = app.respond("!braindump")
-    assert responses == [u"I remember \"the cake\" and \"ünîcödé\"."]
+    assert responses == ["I remember \"the cake\" and \"ünîcödé\"."]
 
     app.respond("!remember third=element")
     responses = app.respond("!braindump")
-    assert responses == [u"I remember \"the cake\", \"ünîcödé\" and \"third\"."]
+    assert responses == ["I remember \"the cake\", \"ünîcödé\" and \"third\"."]
 
     responses = app.respond("!forget the cake")
     assert responses == ["What was \"the cake\" all about?"]
-    responses = app.respond(u"!forget ünîcödé")
-    assert responses == [u"What was \"ünîcödé\" all about?"]
+    responses = app.respond("!forget ünîcödé")
+    assert responses == ["What was \"ünîcödé\" all about?"]
     app.respond("!forget third")
     responses = app.respond("!braindump")
     assert responses == ["I have no memory yet, use the recall command to make me remember stuff for you."]

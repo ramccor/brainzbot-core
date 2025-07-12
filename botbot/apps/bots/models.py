@@ -66,17 +66,17 @@ class ChatBot(models.Model):
     def legacy_slug(self):
         return self.server.split(':')[0]
 
-    def __unicode__(self):
-        return u'{server} ({nick})'.format(server=self.server, nick=self.nick)
+    def __str__(self):
+        return '{server} ({nick})'.format(server=self.server, nick=self.nick)
 
     @property
     def date_cache_key(self):
         return 'dc:{0}'.format(self.pk)
 
     def save(self, *args, **kwargs):
-        self.server_identifier = u"%s.%s" % (
-            slugify(unicode(self.server.replace(":", " ").replace(".", " "))),
-            slugify(unicode(self.nick))
+        self.server_identifier = "%s.%s" % (
+            slugify(str(self.server.replace(":", " ").replace(".", " "))),
+            slugify(str(self.nick))
         )
 
         if not self.slug:
@@ -130,7 +130,7 @@ class Channel(TimeStampedModel):
     # These are the default plugin slugs.
     DEFAULT_PLUGINS = ["logger", "ping", "last_seen", "help", "bangmotivate"]
 
-    chatbot = models.ForeignKey(ChatBot)
+    chatbot = models.ForeignKey(ChatBot, on_delete=models.CASCADE)
     name = models.CharField(max_length=250,
                             help_text="IRC expects room name: #django")
     slug = models.SlugField()
@@ -145,7 +145,6 @@ class Channel(TimeStampedModel):
     # Flags
     is_public = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
-    public_kudos = models.BooleanField(default=True)
 
     plugins = models.ManyToManyField('plugins.Plugin',
                                      through='plugins.ActivePlugin')
@@ -156,7 +155,7 @@ class Channel(TimeStampedModel):
 
     objects = ChannelManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -168,7 +167,7 @@ class Channel(TimeStampedModel):
 
     @classmethod
     def generate_private_slug(cls):
-        return "".join([random.choice(string.ascii_letters) for _ in xrange(8)])
+        return "".join([random.choice(string.ascii_letters) for _ in range(8)])
 
     def get_absolute_url(self):
         from botbot.apps.bots.utils import reverse_channel
@@ -222,13 +221,6 @@ class Channel(TimeStampedModel):
                 cached_config = {}
             cache.set(cache_key, cached_config)
         return cached_config
-
-    def user_can_access_kudos(self, user):
-        if self.public_kudos:
-            return True
-        return (
-            user.is_authenticated()
-        )
 
     @property
     def visible_commands_filter(self):
@@ -334,10 +326,9 @@ class Channel(TimeStampedModel):
 
 class UserCount(models.Model):
     """Number of users in a channel, per hour."""
-
-    channel = models.ForeignKey(Channel)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     dt = models.DateField()
     counts = ArrayField(models.IntegerField(blank=True), blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} on {}: {}".format(self.channel, self.dt, self.counts)
