@@ -1,17 +1,16 @@
-FROM metabrainz/python:3.13-20250616 as brainzbot-base
+ARG PYTHON_BASE_IMAGE_VERSION=3.13-20250616
+FROM metabrainz/python:$PYTHON_BASE_IMAGE_VERSION AS brainzbot-base
 
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+LABEL org.label-schema.vcs-url="https://github.com/metabrainz/brainzbot-core.git" \
+      org.label-schema.vcs-ref="" \
+      org.label-schema.schema-version="1.0.0-rc1" \
+      org.label-schema.vendor="MetaBrainz Foundation" \
+      org.label-schema.name="MetaBrainz" \
+      org.metabrainz.based-on-image="metabrainz/python:$PYTHON_BASE_IMAGE_VERSION"
 
 ENV PYTHONUNBUFFERED 1
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    apt-get install -y libmemcached-dev \
-    build-essential locales git-core \
-    libpq-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev \
-    curl
+RUN apt-get update && apt-get install -y build-essential
 
 EXPOSE 8080
 
@@ -44,6 +43,9 @@ RUN touch /etc/service/plugins/down
 
 COPY ./docker/rc.local /etc/rc.local
 
+ARG GIT_COMMIT_SHA
+LABEL org.label-schema.vcs-ref=$GIT_COMMIT_SHA
+ENV GIT_SHA ${GIT_COMMIT_SHA}
 
 FROM brainzbot-base as brainzbot-dev
 

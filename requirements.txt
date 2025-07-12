@@ -10,7 +10,6 @@ django-hstore==1.4.2
 markdown==3.8.2
 redis==6.2.0
 django-pipeline==4.0.0
-djorm-pgarray==1.2
 django-bootstrap3==25.1
 
 # For production
