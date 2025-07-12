@@ -6,7 +6,7 @@
 # Usage:
 #   $ ./push.sh [tag]
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+cd "$(dirname "${BASH_SOURCE[0]}")/../"
 
 # Save the current git status
 git describe --tags --dirty --always > .git-version
