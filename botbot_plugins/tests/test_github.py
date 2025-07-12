@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 import requests
-from botbot_plugins.base import DummyApp
 from botbot_plugins.plugins import github
+from botbot_plugins.tests.dummy import DummyApp
 
 
 class FakeResponse(object):

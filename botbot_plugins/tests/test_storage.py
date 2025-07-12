@@ -1,4 +1,5 @@
-from botbot_plugins.base import BasePlugin, DummyApp
+from botbot_plugins.base import BasePlugin
+from botbot_plugins.tests.dummy import DummyApp
 
 
 bp = BasePlugin()

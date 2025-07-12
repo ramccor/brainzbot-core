@@ -1,6 +1,6 @@
 import pytest
-from botbot_plugins.base import DummyApp
 from botbot_plugins.plugins import bangmotivate
+from botbot_plugins.tests.dummy import DummyApp
 
 
 @pytest.fixture

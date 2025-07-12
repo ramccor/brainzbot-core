@@ -1,4 +1,5 @@
 #!/bin/bash
 
 sleep 1
+cd /srv/botbot-web/
 exec run-consul-template -config /etc/consul-template-plugins.conf
