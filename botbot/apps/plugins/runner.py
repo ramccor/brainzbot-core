@@ -270,6 +270,7 @@ class PluginRunner(object):
                             channel=line._channel,
                             chatbot_id=line._chatbot_id,
                             app=self)
+        plugin.initialize()
         return plugin
 
     def run_plugin(self, line, plugin, plugin_slug, func, arg_dict):

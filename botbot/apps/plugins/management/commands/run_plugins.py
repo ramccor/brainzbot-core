@@ -7,13 +7,15 @@ from botbot.apps.plugins import runner
 class Command(BaseCommand):
 
     help = "Starts up all plugins in the botbot.apps.bots.plugins module"
-    option_list = (
-        make_option('--with-gevent',
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--with-gevent',
             action='store_true',
             dest='with_gevent',
             default=False,
-            help='Use gevent for concurrency'),
-    )
+            help='Use gevent for concurrency'
+        )
 
-    def handle_noargs(self, **options):
-        runner.start_plugins(use_gevent=options['with_gevent'])
+    def handle(self, **options):
+        runner.start_plugins(use_gevent=options.get('with_gevent', False))

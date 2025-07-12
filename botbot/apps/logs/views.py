@@ -433,7 +433,7 @@ class DayLogViewer(PaginatorPageLinksMixin, LogDateMixin, LogViewer, ListView):
 
         # Use the last page.
         self.kwargs['page'] = 'last'
-        return _utc_now().date()
+        return datetime.datetime.now(tz=pytz.timezone("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class SearchLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
@@ -476,7 +476,7 @@ class SearchLogViewer(PaginatorPageLinksMixin, LogViewer, ListView):
             self.search_term = self.search_term.replace(matches.groups()[0], '')
             filter_args = filter_args & Q(nick__icontains=matches.groups()[1])
 
-        return self.channel.log_set.search(self.search_term).filter(filter_args)
+        return self.channel.log_set.filter(search_index=self.search_term).filter(filter_args)
 
 
 class SingleLogViewer(DayLogViewer):

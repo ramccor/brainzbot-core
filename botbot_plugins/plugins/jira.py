@@ -71,16 +71,11 @@ class Plugin(BasePlugin):
                 else:
                     return "\n".join(reply)
 
-    @listens_to_mentions(r'(.*)\bUPDATE:JIRA')
-    def update_projects(self, line):
-        """
-        Updates projects list on mentioning the bot with the command
+    def initialize(self):
+        if self.retrieve('projects') is None:
+            self._update_projects()
 
-        Usage:
-            Ping the bot with the command:
-            UPDATE:JIRA
-        """
-
+    def _update_projects(self):
         api_url = urljoin(self.config['jira_url'], self.config['rest_api_suffix'])
         project_url = urljoin(api_url, 'project')
         response = requests.get(project_url)
@@ -91,6 +86,17 @@ class Plugin(BasePlugin):
             return "Successfully updated projects list"
 
         return "Could not update projects list"
+
+    @listens_to_mentions(r'(.*)\bUPDATE:JIRA')
+    def update_projects(self, line):
+        """
+        Updates projects list on mentioning the bot with the command
+
+        Usage:
+            Ping the bot with the command:
+            UPDATE:JIRA
+        """
+        return self._update_projects()
 
     def _get_ignored_nicks(self):
         try:

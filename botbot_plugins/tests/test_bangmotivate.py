@@ -1,11 +1,11 @@
 import pytest
 from botbot_plugins.base import DummyApp
-from botbot_plugins.plugins import bangmotivate_redux
+from botbot_plugins.plugins import bangmotivate
 
 
 @pytest.fixture
 def app():
-    return DummyApp(test_plugin=bangmotivate_redux.Plugin(), command_prefix="!")
+    return DummyApp(test_plugin=bangmotivate.Plugin(), command_prefix="!")
 
 
 def test_motivate(app):

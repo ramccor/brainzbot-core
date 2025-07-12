@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
+import logging
 import requests
 from ..base import BasePlugin
 from .. import config
 from ..decorators import listens_to_all, listens_to_mentions
+
+LOG = logging.getLogger('botbot.plugin_runner')
 
 
 class Config(config.BaseConfig):
@@ -42,9 +44,8 @@ class Plugin(BasePlugin):
     """
     url = "https://api.github.com/repos"
     config_class = Config
-    
-    def __init__(self, *args, **kwargs):
-        super(Plugin, self).__init__(*args, **kwargs)
+
+    def initialize(self):
         # Set up initial project abbreviations to avoid doing it manually on each restart
         # These can be overwritten as described in store_abbreviation
         self.store("MBS", "musicbrainz-server")
@@ -65,6 +66,9 @@ class Plugin(BasePlugin):
     @listens_to_all(r'(?:.*)\b(?P<repo_abbreviation>[\w\-\_]+)#(?P<pulls>\d+(?:,\d+)*)\b(?:.*)')
     def issue_lookup(self, line, repo_abbreviation, pulls):
         """Lookup an specified repo pulls"""
+        if not self.config.get('organization'):
+            LOG.warning("github plugin: organization not configured, not responding")
+            return None
         # pulls can be a list of pulls separated by a comma
         pull_list = [i.strip() for i in pulls.split(",")]
         repo = self.retrieve(repo_abbreviation)

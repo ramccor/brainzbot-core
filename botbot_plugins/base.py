@@ -31,6 +31,9 @@ class BasePlugin(object):
     def __init__(self, *args, **kwargs):
         self.slug = self.__module__.split('.')[-1]
 
+    def initialize(self):
+        pass
+
     @property
     def config(self):
         if hasattr(self, 'prod_config'):
@@ -150,6 +153,7 @@ class DummyApp(Cmd):
         self.plugin_configs = {}
         if 'test_plugin' in kwargs:
             self.test_mode = True
+            self.test_plugin = kwargs['test_plugin']
             self.register(kwargs['test_plugin'])
             del(kwargs['test_plugin'])
         else:

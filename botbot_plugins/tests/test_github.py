@@ -21,8 +21,6 @@ def app():
     return dummy_app
 
 
-# creating the dummy app fails because github.Plugin calls store in __init__ when app is not available
-@pytest.mark.xfail
 def test_github(app):
     # patch requests.get so we don't need to make a real call to GitHub
     with patch.object(requests, 'get') as mock_get:
