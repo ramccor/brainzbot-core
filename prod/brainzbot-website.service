@@ -1,0 +1,17 @@
+[Unit]
+Description=brainzbot website
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/root/brainzbot-core/
+EnvironmentFile=-/root/brainzbot-core/.env
+ExecStart=/root/brainzbot-core/venv/bin/uwsgi --ini /root/brainzbot-core/prod/uwsgi.ini
+Restart=always
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
