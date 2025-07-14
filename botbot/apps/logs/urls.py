@@ -13,7 +13,6 @@ urlpatterns = [
             name="log_message_permalink"),
     re_path(r'^search/$', views.SearchLogViewer.as_view(), name='log_search'),
     re_path(r'^help/$', views.Help.as_view(), name='help_bot'),
-    re_path(r'^stream/$', views.LogStream.as_view(), name='log_stream'),
     re_path(r'^$', views.DayLogViewer.as_view(),
             name="log_current"),
 ]

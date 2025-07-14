@@ -173,10 +173,6 @@ class Channel(TimeStampedModel):
         from botbot.apps.bots.utils import reverse_channel
         return reverse_channel(self, 'log_current')
 
-    def get_eventsource_url(self):
-        from botbot.apps.bots.utils import reverse_channel
-        return reverse_channel(self, 'log_stream')
-
     def create_default_plugins(self):
         """
         Adds our default plugins to the channel.

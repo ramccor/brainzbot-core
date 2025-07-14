@@ -134,7 +134,6 @@ $$.Views.LogViewer = Backbone.View.extend({
             "true") === "true");
 
         this.current = options.current;
-        this.eventSourceUrl = options.source;
         this.newestFirst = options.newestFirst;
 
         // initialize lines already in the DOM
@@ -157,7 +156,6 @@ $$.Views.LogViewer = Backbone.View.extend({
         this.createDateHeaderWaypoints();
         if (this.current) {
             $$.trigger('at-bottom');
-            this.setupEventSource();
             $('html, body').animate({
                 scrollTop: $(document).height() - $(window).height()
             }, 0);
@@ -221,52 +219,6 @@ $$.Views.LogViewer = Backbone.View.extend({
             $target.addClass('collapse').removeClass('expand');
             $target.find('.icon-zoom-in').removeClass('icon-zoom-in').addClass('icon-zoom-out');
         }
-    },
-
-    setupEventSource: function () {
-        log('LogViewer:setupEventSource');
-        var self = this;
-        $$.trigger('at-bottom');
-        // only do this once
-        if (this.source) {
-            return;
-        }
-        this.source = new EventSource(this.eventSourceUrl);
-        log('Creating event source');
-        this.source.addEventListener('log', function (e) {
-            log('received');
-            log(e);
-            log(this);
-            var $el = $(e.data).hide(),
-                $last = self.$logEl.find('li:last'),
-                prevDate = moment($last.find('time').attr('datetime'));
-            $el.each(function (idx, el) {
-                prevDate = $$.changeLineTimezone($(el), prevDate);
-            });
-            log('mid');
-            self.checkPageSplit($last, $el.first());
-            $$.imagePreviews($el);
-            $$.applyFilter($el);
-            self.$logEl.append($el);
-            log('end');
-            if ($$.isAtBottom()) {
-                // if user is within 50px of the bottom, we'll auto-scroll on new messages
-                $('html, body').animate({
-                    scrollTop: $(document).height() - $(window).height()
-                }, 50);
-            }
-        }, false);
-        /*
-        this.source.addEventListener('open', function (e) {
-            // Connection was opened.
-        }, false);
-
-        this.source.addEventListener('error', function (e) {
-            if (e.readyState === EventSource.CLOSED) {
-                // Connection was closed.
-            }
-        }, false);
-        */
     },
 
     checkPageSplit: function ($first, $second) {
@@ -344,9 +296,7 @@ $$.Views.LogViewer = Backbone.View.extend({
         }
         if (cache.isFinished) {
             this.$el.removeClass('loading-' + cache.direction);
-            if (cache.direction === 'next') {
-                this.setupEventSource();
-            }
+            $$.trigger('at-bottom');
             return;
         }
         cache.hasListener = false;
