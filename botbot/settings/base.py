@@ -22,7 +22,7 @@ LANGUAGES = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ['WEB_SECRET_KEY']
+SECRET_KEY = os.environ['SECRET_KEY']
 INSTALLED_APPS = (
     'django_jinja',  # Must be before django.contrib.staticfiles
 
@@ -206,16 +206,6 @@ CACHES = {
 }
 
 CACHE_MIDDLEWARE_SECONDS = 600  # Unit is second
-
-#=============================================================================
-# Email
-#=============================================================================
-
-ADMINS = (
-    ('LL', 'info@lincolnloop.com'),
-)
-EMAIL_SUBJECT_PREFIX = "[BBME] "
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 #==============================================================================
 # Miscellaneous project settings
