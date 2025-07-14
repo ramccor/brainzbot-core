@@ -5,7 +5,7 @@ Before=nginx.service
 Requires=redis.service postgresql.service
 
 [Service]
-Type=simple
+Type=notify
 User=www-data
 Group=www-data
 WorkingDirectory=/srv/www/brainzbot/brainzbot-core
