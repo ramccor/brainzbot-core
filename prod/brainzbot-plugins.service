@@ -11,7 +11,7 @@ WorkingDirectory=/srv/www/brainzbot/brainzbot-core
 EnvironmentFile=-/srv/www/brainzbot/brainzbot-core/.env
 ExecStart=/bin/bash -c \
   'source /srv/www/brainzbot/venv/bin/activate && \
-   exec python manage.py run_plugins'
+   exec python manage.py run_plugins --with-gevent'
 Restart=always
 RestartSec=5s
 KillSignal=SIGINT
