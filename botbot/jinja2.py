@@ -27,7 +27,6 @@ def environment(**options):
     # Set default extensions if not provided
     if 'extensions' not in options:
         options['extensions'] = [
-            'pipeline.jinja2.PipelineExtension',
             'django_jinja.builtins.extensions.CacheExtension',
         ]
 

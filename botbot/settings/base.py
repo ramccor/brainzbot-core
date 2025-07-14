@@ -1,6 +1,8 @@
 import os
 import dj_database_url
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 #==============================================================================
 # Generic Django project settings
 #==============================================================================
@@ -29,7 +31,6 @@ INSTALLED_APPS = (
     'botbot.apps.plugins',
     'botbot.core',
 
-    'pipeline',
     'whitenoise.runserver_nostatic',
 
     'django.contrib.auth',
@@ -46,60 +47,21 @@ INSTALLED_APPS = (
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 #==============================================================================
-# Calculation of directories relative to the project module location
-#==============================================================================
-
-import os
-import sys
-import botbot as project_module
-
-PROJECT_DIR = os.path.dirname(os.path.realpath(project_module.__file__))
-
-PYTHON_BIN = os.path.dirname(sys.executable)
-ve_path = os.path.dirname(os.path.dirname(os.path.dirname(PROJECT_DIR)))
-if "VAR_ROOT" in os.environ:
-     VAR_ROOT = os.environ.get("VAR_ROOT")
-# Assume that the presence of 'activate_this.py' in the python bin/
-# directory means that we're running in a virtual environment.
-elif os.path.exists(os.path.join(PYTHON_BIN, 'activate_this.py')):
-    # We're running with a virtualenv python executable.
-    VAR_ROOT = os.path.join(os.path.dirname(PYTHON_BIN), 'var')
-elif ve_path and os.path.exists(os.path.join(ve_path, 'bin',
-                                             'activate_this.py')):
-    # We're running in [virtualenv_root]/src/[project_name].
-    VAR_ROOT = os.path.join(ve_path, 'var')
-else:
-    # Set the variable root to the local configuration location (which is
-    # ignored by the repository).
-    VAR_ROOT = os.path.join(PROJECT_DIR, 'conf', 'local')
-
-if not os.path.exists(VAR_ROOT):
-    os.mkdir(VAR_ROOT)
-
-#==============================================================================
 # Project URLS and media settings
 #==============================================================================
 
 ROOT_URLCONF = 'botbot.urls'
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/uploads/'
+STATIC_ROOT = os.environ.get('STATIC_ROOT')
 
-STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(VAR_ROOT, 'static'))
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(VAR_ROOT, 'uploads'))
-
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'pipeline.finders.PipelineFinder',
 )
-STATICFILES_DIRS = (
-    os.path.join(PROJECT_DIR, 'static'),
-)
-
-# Defines PIPELINE settings and bundles
-from ._asset_pipeline import *
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 DATABASES = {'default': dj_database_url.config(env='STORAGE_URL')}
 # Reuse database connections
@@ -111,13 +73,11 @@ DATABASES['default'].update({
 #==============================================================================
 # Templates
 #==============================================================================
-import pipeline
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
         'DIRS': [
-            os.path.join(PROJECT_DIR, 'templates'),
-            os.path.join(os.path.dirname(pipeline.__file__), 'templates'),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'OPTIONS': {
             'environment': 'botbot.jinja2.environment',
