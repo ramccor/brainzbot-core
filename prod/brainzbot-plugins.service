@@ -1,7 +1,6 @@
 [Unit]
-Description=brainzbot website
+Description=brainzbot plugins
 After=network.target redis.service postgresql.service
-Before=nginx.service
 Requires=redis.service postgresql.service
 
 [Service]
@@ -10,7 +9,9 @@ User=www-data
 Group=www-data
 WorkingDirectory=/srv/www/brainzbot/brainzbot-core
 EnvironmentFile=-/srv/www/brainzbot/brainzbot-core/.env
-ExecStart=/srv/www/brainzbot/venv/bin/uwsgi --ini /srv/www/brainzbot/brainzbot-core/prod/uwsgi.ini
+ExecStart=/bin/bash -c \
+  'source /srv/www/brainzbot/venv/bin/activate && \
+   exec python manage.py run_plugins'
 Restart=always
 RestartSec=5s
 KillSignal=SIGINT
