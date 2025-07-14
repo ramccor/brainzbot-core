@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/srv/www/brainzbot-core
-EnvironmentFile=-/srv/www/brainzbot-core/.env
-ExecStart=/srv/www/brainzbot-core/venv/bin/uwsgi --ini /srv/www/brainzbot-core/prod/uwsgi.ini
+WorkingDirectory=/srv/www/brainzbot/brainzbot-core
+EnvironmentFile=-/srv/www/brainzbot/brainzbot-core/.env
+ExecStart=/srv/www/brainzbot/venv/bin/uwsgi --ini /srv/www/brainzbot/brainzbot-core/prod/uwsgi.ini
 Restart=always
 KillSignal=SIGQUIT
 TimeoutStopSec=5
