@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Generic Django project settings
 #==============================================================================
 
-DEBUG = os.environ.get('DEBUG', 'True')
+DEBUG = os.environ.get('DEBUG', 'False').lower() == "true"
 
 SITE_ID = 1
 # Local time zone for this installation. Choices can be found here:
