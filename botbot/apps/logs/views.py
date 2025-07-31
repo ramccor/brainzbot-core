@@ -484,7 +484,9 @@ class SingleLogViewer(DayLogViewer):
         except ValueError:
             raise Http404
         # set date to midnight so get_queryset starts pages correctly
-        self.date = log.timestamp.date()
+        self.date = datetime.datetime.combine(
+            log.timestamp.date(), datetime.time.min, tzinfo=pytz.UTC
+        )
         self.object_list = self.get_queryset()
         # Find the page in the queryset the message is located on.
         page_url = self._permalink_to_log(log)
